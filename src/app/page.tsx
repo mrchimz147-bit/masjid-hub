@@ -127,6 +127,14 @@ interface Dua {
   audioUrl: string | null
 }
 
+interface Comment {
+  id: string
+  announcementId: string
+  name: string
+  content: string
+  createdAt: string
+}
+
 interface Announcement {
   id: string
   title: string
@@ -134,6 +142,7 @@ interface Announcement {
   category: string
   priority: number
   createdAt: string
+  comments?: Comment[]
 }
 
 interface Surah {
@@ -398,6 +407,17 @@ export default function MasjidHub() {
   const [tributeForm, setTributeForm] = useState({ name: '', relationship: '', message: '' })
   const [tributeSubmitted, setTributeSubmitted] = useState(false)
   const [showTributeModal, setShowTributeModal] = useState(false)
+
+  // Comment states for announcements
+  const [commentForm, setCommentForm] = useState({ name: '', content: '' })
+  const [commentSubmitted, setCommentSubmitted] = useState(false)
+  const [activeCommentAnnouncement, setActiveCommentAnnouncement] = useState<string | null>(null)
+  const [announcementComments, setAnnouncementComments] = useState<Record<string, Comment[]>>({})
+
+  // Live Stream Recording states
+  const [showRecordingModal, setShowRecordingModal] = useState(false)
+  const [selectedRecording, setSelectedRecording] = useState<LiveStream | null>(null)
+  const [recordedStreams, setRecordedStreams] = useState<LiveStream[]>([])
 
   // Photo Album states
   const [photos, setPhotos] = useState<Photo[]>([])
@@ -1712,9 +1732,26 @@ export default function MasjidHub() {
               <div className="space-y-4">
                 <div className="card bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200">
                   <h3 className="font-bold text-primary text-xl">🔴 Live Streaming</h3>
-                  <p className="text-sm text-gray-600 mt-1">Watch prayers and events live</p>
+                  <p className="text-sm text-gray-600 mt-1">Watch prayers, lectures & events live</p>
                 </div>
 
+                {/* Live Stream Types */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'jumuah', label: '🕌 Jumu\'ah', desc: 'Friday Khutbah', icon: '🎤' },
+                    { id: 'eid', label: '☪️ Eid Prayer', desc: 'Eid Khutbah', icon: '🌙' },
+                    { id: 'bayaan', label: '📚 Bayaan', desc: 'Islamic Lecture', icon: '📖' },
+                    { id: 'imam_live', label: '🏠 Imam Live', desc: 'From Imam\'s Home', icon: '📹' },
+                  ].map((type) => (
+                    <button key={type.id} className="card text-center hover:shadow-lg transition-all">
+                      <span className="text-3xl">{type.icon}</span>
+                      <p className="font-bold mt-2">{type.label}</p>
+                      <p className="text-xs text-gray-500">{type.desc}</p>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Live Now Section */}
                 {liveStreams.find(s => s.isLive) ? (
                   <div className="card border-2 border-red-300">
                     <div className="flex items-center gap-2 mb-3">
@@ -1723,30 +1760,95 @@ export default function MasjidHub() {
                     </div>
                     <h4 className="font-bold text-lg">{liveStreams.find(s => s.isLive)?.title}</h4>
                     <p className="text-sm text-gray-600">{liveStreams.find(s => s.isLive)?.description}</p>
-                    <button className="btn-primary w-full mt-4">
-                      <PlayIcon /> Watch Live
-                    </button>
+                    
+                    {/* Video Player Placeholder */}
+                    <div className="bg-black rounded-lg aspect-video flex items-center justify-center mt-3">
+                      <div className="text-white text-center">
+                        <span className="text-5xl">▶️</span>
+                        <p className="mt-2">Tap to watch live</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 mt-4">
+                      <button className="btn-primary flex-1 flex items-center justify-center gap-2">
+                        <span>▶️</span> Watch Live
+                      </button>
+                      <button 
+                        onClick={() => { playClickSound(); setShowRecordingModal(true); }}
+                        className="btn-outline flex-1 flex items-center justify-center gap-2"
+                      >
+                        <span>💾</span> Save Recording
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="card text-center py-8">
-                    <span className="text-4xl block mb-2">📺</span>
-                    <p className="text-gray-500">No live stream at the moment</p>
+                    <span className="text-5xl block mb-2">📺</span>
+                    <p className="text-gray-500 font-medium">No live stream at the moment</p>
+                    <p className="text-sm text-gray-400 mt-1">Check upcoming events below</p>
                   </div>
                 )}
 
                 {/* Upcoming Streams */}
                 <div className="card">
                   <h4 className="font-bold text-primary mb-3">📅 Upcoming Events</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {liveStreams.filter(s => s.scheduledTime && new Date(s.scheduledTime) > new Date()).map((stream) => (
-                      <div key={stream.id} className="border rounded-lg p-3">
-                        <p className="font-medium">{stream.title}</p>
-                        <p className="text-xs text-gray-500">{stream.event} • {new Date(stream.scheduledTime!).toLocaleString()}</p>
+                      <div key={stream.id} className="border rounded-lg p-3 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{stream.title}</p>
+                          <p className="text-xs text-gray-500">{stream.event} • {new Date(stream.scheduledTime!).toLocaleString()}</p>
+                        </div>
+                        <button className="btn-outline text-sm">🔔 Remind Me</button>
                       </div>
                     ))}
                     {liveStreams.filter(s => s.scheduledTime && new Date(s.scheduledTime) > new Date()).length === 0 && (
-                      <p className="text-sm text-gray-500">No upcoming scheduled streams</p>
+                      <div className="text-center py-4">
+                        <p className="text-gray-500 text-sm">No upcoming scheduled streams</p>
+                        <p className="text-xs text-gray-400 mt-1">Check back later for Jumu'ah, Eid, and special events</p>
+                      </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Saved Recordings */}
+                <div className="card">
+                  <h4 className="font-bold text-primary mb-3">📼 Saved Recordings</h4>
+                  <div className="space-y-3">
+                    {[
+                      { title: 'Jumu\'ah Khutbah - March 7, 2026', duration: '45 min', type: 'Jumu\'ah' },
+                      { title: 'Seerah Bayaan - Part 5', duration: '1hr 15min', type: 'Bayaan' },
+                      { title: 'Eid al-Fitr Khutbah 2025', duration: '30 min', type: 'Eid' },
+                    ].map((rec, idx) => (
+                      <div key={idx} className="border rounded-lg p-3 flex items-center justify-between bg-gray-50">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
+                            ▶️
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{rec.title}</p>
+                            <p className="text-xs text-gray-500">{rec.type} • {rec.duration}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => { playClickSound(); }} className="text-primary text-xl">▶️</button>
+                          <button onClick={() => { playClickSound(); }} className="text-gray-500 text-xl">⬇️</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Go Live Button for Imam (Admin Only) */}
+                <div className="card bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-primary">🎙️ Go Live (Imam Only)</h4>
+                      <p className="text-sm text-gray-600">Start a live lecture from your home</p>
+                    </div>
+                    <button className="bg-red-500 text-white px-4 py-2 rounded-full font-bold flex items-center gap-2">
+                      🔴 Go Live
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1866,16 +1968,108 @@ export default function MasjidHub() {
 
             {/* Announcements */}
             {communitySubTab === 'announcements' && (
-              <div className="card">
-                <h3 className="font-bold text-primary mb-4">📢 Announcements</h3>
-                <div className="space-y-3">
-                  {announcements.map((ann) => (
-                    <div key={ann.id} className="border-l-4 border-primary pl-3 py-2">
-                      <p className="font-medium">{ann.title}</p>
-                      <p className="text-sm text-gray-600 mt-1">{ann.content}</p>
-                      <p className="text-xs text-gray-400 mt-1">{new Date(ann.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  ))}
+              <div className="space-y-4">
+                <div className="card">
+                  <h3 className="font-bold text-primary mb-4">📢 Announcements & News</h3>
+                  <div className="space-y-4">
+                    {announcements.map((ann) => (
+                      <div key={ann.id} className="border rounded-xl overflow-hidden">
+                        <div className="border-l-4 border-primary pl-3 py-3 bg-white">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-bold text-lg">{ann.title}</p>
+                              <p className="text-sm text-gray-600 mt-1">{ann.content}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs text-gray-400">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                                <span className={`px-2 py-0.5 rounded-full text-xs ${
+                                  ann.category === 'emergency' ? 'bg-red-100 text-red-600' :
+                                  ann.category === 'event' ? 'bg-blue-100 text-blue-600' :
+                                  'bg-green-100 text-green-600'
+                                }`}>{ann.category}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Comment Section */}
+                          <div className="mt-3 pt-3 border-t">
+                            <button 
+                              onClick={() => { 
+                                playClickSound();
+                                setActiveCommentAnnouncement(activeCommentAnnouncement === ann.id ? null : ann.id);
+                              }}
+                              className="text-sm text-primary font-medium flex items-center gap-1"
+                            >
+                              💬 Comments {(announcementComments[ann.id]?.length || 0) > 0 && `(${announcementComments[ann.id]?.length})`}
+                            </button>
+                            
+                            {activeCommentAnnouncement === ann.id && (
+                              <div className="mt-3 space-y-2">
+                                {/* Existing Comments */}
+                                {(announcementComments[ann.id] || []).map((comment) => (
+                                  <div key={comment.id} className="bg-gray-50 rounded-lg p-2">
+                                    <p className="text-xs font-medium text-primary">{comment.name}</p>
+                                    <p className="text-sm">{comment.content}</p>
+                                    <p className="text-xs text-gray-400 mt-1">{new Date(comment.createdAt).toLocaleString()}</p>
+                                  </div>
+                                ))}
+                                
+                                {/* Add Comment Form */}
+                                <div className="bg-blue-50 rounded-lg p-3">
+                                  <input
+                                    type="text"
+                                    placeholder="Your name"
+                                    className="form-input w-full text-sm mb-2"
+                                    value={commentForm.name}
+                                    onChange={(e) => setCommentForm({ ...commentForm, name: e.target.value })}
+                                  />
+                                  <textarea
+                                    placeholder="Ask a question or add a comment..."
+                                    className="form-textarea w-full text-sm"
+                                    rows={2}
+                                    value={commentForm.content}
+                                    onChange={(e) => setCommentForm({ ...commentForm, content: e.target.value })}
+                                  />
+                                  <button
+                                    onClick={async () => {
+                                      if (!commentForm.name || !commentForm.content) return;
+                                      playClickSound();
+                                      const newComment: Comment = {
+                                        id: Date.now().toString(),
+                                        announcementId: ann.id,
+                                        name: commentForm.name,
+                                        content: commentForm.content,
+                                        createdAt: new Date().toISOString()
+                                      };
+                                      setAnnouncementComments(prev => ({
+                                        ...prev,
+                                        [ann.id]: [...(prev[ann.id] || []), newComment]
+                                      }));
+                                      setCommentForm({ name: '', content: '' });
+                                      setCommentSubmitted(true);
+                                      setTimeout(() => setCommentSubmitted(false), 2000);
+                                    }}
+                                    disabled={!commentForm.name || !commentForm.content}
+                                    className="btn-primary w-full mt-2 text-sm disabled:opacity-50"
+                                  >
+                                    Post Comment
+                                  </button>
+                                  {commentSubmitted && (
+                                    <p className="text-green-600 text-xs mt-1 text-center">✅ Comment posted!</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {announcements.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <span className="text-4xl block mb-2">📢</span>
+                        <p>No announcements yet</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -2094,19 +2288,104 @@ export default function MasjidHub() {
                     <label className="block text-sm font-medium mb-1">Amount (USD)</label>
                     <input type="number" className="form-input w-full" placeholder="Enter amount" value={donationAmount} onChange={(e) => setDonationAmount(e.target.value)} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Type</label>
-                    <select className="form-select w-full" value={donationType} onChange={(e) => setDonationType(e.target.value)}>
-                      <option value="general">General Fund</option>
-                      <option value="building">Building Fund</option>
-                      <option value="madressa">Madressa</option>
-                      <option value="sadaqah">Sadaqah</option>
-                    </select>
+                  {/* Donation Categories */}
+                  <div className="bg-green-50 rounded-xl p-4 mb-4">
+                    <h4 className="font-bold text-primary mb-3">💝 Select Donation Type</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'general', label: '🏛️ General Fund', desc: 'Masjid operations' },
+                        { id: 'fitra', label: '🌾 Fitra (Eid)', desc: 'Ramadan/Eid support' },
+                        { id: 'sadaqah', label: '💚 Sadaqah', desc: 'Charitable giving' },
+                        { id: 'zakat', label: '💰 Zakat', desc: 'Obligatory charity' },
+                        { id: 'madressa', label: '📚 Madressa Fees', desc: 'Islamic education' },
+                        { id: 'building', label: '🏗️ Building Fund', desc: 'Construction' },
+                        { id: 'water', label: '💧 Water Well', desc: 'Sadaqah Jariyah' },
+                        { id: 'orphans', label: '🤲 Orphan Support', desc: 'Help the needy' },
+                        { id: 'funeral', label: '⚰️ Funeral Fund', desc: 'Janaza assistance' },
+                        { id: 'iftar', label: '🍱 Iftar Meals', desc: 'Ramadan feeding' },
+                        { id: 'qurbani', label: '🐑 Qurbani', desc: 'Eid al-Adha' },
+                        { id: 'specific', label: '📌 Specific Cause', desc: 'Other donation' },
+                      ].map((type) => (
+                        <button
+                          key={type.id}
+                          onClick={() => { playClickSound(); setDonationType(type.id); }}
+                          className={`p-3 rounded-lg text-left transition-all ${donationType === type.id ? 'bg-primary text-white' : 'bg-white border border-gray-200 hover:border-primary'}`}
+                        >
+                          <p className="font-medium text-sm">{type.label}</p>
+                          <p className="text-xs opacity-80">{type.desc}</p>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button onClick={() => handleDonation('ecocash')} className="bg-green-500 text-white py-3 rounded-lg font-medium">EcoCash</button>
-                    <button onClick={() => handleDonation('onemoney')} className="bg-red-500 text-white py-3 rounded-lg font-medium">OneMoney</button>
-                    <button onClick={() => handleDonation('innbucks')} className="bg-blue-500 text-white py-3 rounded-lg font-medium">InnBucks</button>
+                  
+                  {/* Specific Cause Input */}
+                  {donationType === 'specific' && (
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Specify Your Cause</label>
+                      <input type="text" className="form-input w-full" placeholder="e.g., New carpet, Sound system, etc." />
+                    </div>
+                  )}
+                  
+                  {/* Madressa Student Selection */}
+                  {donationType === 'madressa' && (
+                    <div className="mb-4 bg-blue-50 p-3 rounded-lg">
+                      <label className="block text-sm font-medium mb-1">Student Name (optional)</label>
+                      <input type="text" className="form-input w-full" placeholder="Enter student name for fee payment" />
+                      <label className="block text-sm font-medium mb-1 mt-2">Month</label>
+                      <select className="form-select w-full">
+                        <option>January 2026</option>
+                        <option>February 2026</option>
+                        <option>March 2026</option>
+                        <option>April 2026</option>
+                        <option>May 2026</option>
+                        <option>June 2026</option>
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* Fitra Calculator */}
+                  {donationType === 'fitra' && (
+                    <div className="mb-4 bg-amber-50 p-3 rounded-lg">
+                      <p className="text-sm font-medium mb-2">🌾 Fitra Amount: $3-5 per person</p>
+                      <label className="block text-sm font-medium mb-1">Number of Family Members</label>
+                      <input type="number" className="form-input w-full" placeholder="e.g., 5" min="1" />
+                      <p className="text-xs text-gray-500 mt-1">Fitra is obligatory before Eid prayer</p>
+                    </div>
+                  )}
+                  
+                  {/* Quick Amount Buttons */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {[5, 10, 20, 50, 100].map((amt) => (
+                      <button
+                        key={amt}
+                        onClick={() => { playClickSound(); setDonationAmount(amt.toString()); }}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${donationAmount === amt.toString() ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                      >
+                        ${amt}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Payment Methods */}
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-primary">📱 Payment Method</h4>
+                    <div className="grid grid-cols-1 gap-2">
+                      <button onClick={() => handleDonation('ecocash')} className="bg-green-500 text-white py-4 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <span className="text-xl">📱</span> EcoCash - Pay Now
+                      </button>
+                      <button onClick={() => handleDonation('onemoney')} className="bg-red-500 text-white py-4 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <span className="text-xl">💳</span> OneMoney - Pay Now
+                      </button>
+                      <button onClick={() => handleDonation('innbucks')} className="bg-orange-500 text-white py-4 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <span className="text-xl">🏦</span> InnBucks - Pay Now
+                      </button>
+                      <button onClick={() => handleDonation('bank')} className="bg-blue-600 text-white py-4 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <span className="text-xl">🏦</span> Bank Transfer
+                      </button>
+                      <button onClick={() => handleDonation('cash')} className="bg-gray-600 text-white py-4 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <span className="text-xl">💵</span> Cash at Masjid
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
