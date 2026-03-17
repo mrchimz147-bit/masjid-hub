@@ -413,6 +413,26 @@ export default function MasjidHub() {
   const [commentSubmitted, setCommentSubmitted] = useState(false)
   const [activeCommentAnnouncement, setActiveCommentAnnouncement] = useState<string | null>(null)
   const [announcementComments, setAnnouncementComments] = useState<Record<string, Comment[]>>({})
+  const [loadingComments, setLoadingComments] = useState<string | null>(null)
+
+  // Kids Section states
+  const [kidsSubTab, setKidsSubTab] = useState<'menu' | 'nasheeds' | 'stories' | 'games' | 'arabic'>('menu')
+  const [kidsNasheeds, setKidsNasheeds] = useState<any[]>([])
+  const [kidsStories, setKidsStories] = useState<any[]>([])
+  const [kidsGames, setKidsGames] = useState<any[]>([])
+  const [kidsArabic, setKidsArabic] = useState<any[]>([])
+  const [selectedStory, setSelectedStory] = useState<any | null>(null)
+  const [activeQuiz, setActiveQuiz] = useState<any | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [quizScore, setQuizScore] = useState(0)
+  const [showQuizResult, setShowQuizResult] = useState(false)
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
+
+  // Qibla Compass states
+  const [compassHeading, setCompassHeading] = useState<number | null>(null)
+  const [compassError, setCompassError] = useState<string | null>(null)
+  const [qiblaAngle] = useState(20) // Qibla direction from Bulawayo is approximately 20° NE
+  const [compassSupported, setCompassSupported] = useState(false)
 
   // Live Stream Recording states
   const [showRecordingModal, setShowRecordingModal] = useState(false)
@@ -813,6 +833,161 @@ export default function MasjidHub() {
       console.error('Error updating hifz:', error)
     }
   }
+
+  // Load comments for an announcement
+  const loadComments = async (announcementId: string) => {
+    setLoadingComments(announcementId)
+    try {
+      const response = await fetch(`/api/comments?announcementId=${announcementId}`)
+      const data = await response.json()
+      if (data.comments) {
+        setAnnouncementComments(prev => ({
+          ...prev,
+          [announcementId]: data.comments
+        }))
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error)
+    } finally {
+      setLoadingComments(null)
+    }
+  }
+
+  // Submit comment to API
+  const handleSubmitComment = async (announcementId: string) => {
+    if (!commentForm.name || !commentForm.content) return
+    playClickSound()
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          announcementId,
+          name: commentForm.name,
+          content: commentForm.content,
+        }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setAnnouncementComments(prev => ({
+          ...prev,
+          [announcementId]: [data.comment, ...(prev[announcementId] || [])]
+        }))
+        setCommentForm({ name: '', content: '' })
+        setCommentSubmitted(true)
+        setTimeout(() => setCommentSubmitted(false), 2000)
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error)
+    }
+  }
+
+  // Load kids content
+  const loadKidsContent = async () => {
+    try {
+      const response = await fetch('/api/kids')
+      const data = await response.json()
+      if (data.nasheeds) setKidsNasheeds(data.nasheeds)
+      if (data.stories) setKidsStories(data.stories)
+      if (data.games) setKidsGames(data.games)
+      if (data.arabic) setKidsArabic(data.arabic)
+    } catch (error) {
+      console.error('Error loading kids content:', error)
+    }
+  }
+
+  // Handle quiz answer
+  const handleQuizAnswer = (answerIndex: number) => {
+    if (!activeQuiz || selectedAnswer !== null) return
+    setSelectedAnswer(answerIndex)
+    const isCorrect = answerIndex === activeQuiz.questions[currentQuestion].correct
+    if (isCorrect) {
+      setQuizScore(prev => prev + 1)
+    }
+    setTimeout(() => {
+      if (currentQuestion < activeQuiz.questions.length - 1) {
+        setCurrentQuestion(prev => prev + 1)
+        setSelectedAnswer(null)
+      } else {
+        setShowQuizResult(true)
+      }
+    }, 1000)
+  }
+
+  // Start new quiz
+  const startQuiz = (quiz: any) => {
+    setActiveQuiz(quiz)
+    setCurrentQuestion(0)
+    setQuizScore(0)
+    setShowQuizResult(false)
+    setSelectedAnswer(null)
+  }
+
+  // Qibla Compass - Device orientation handler
+  useEffect(() => {
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      if (event.alpha !== null) {
+        // Alpha is the compass direction in degrees
+        setCompassHeading(event.alpha)
+        setCompassError(null)
+      }
+    }
+
+    // Check if DeviceOrientationEvent is available
+    if (window.DeviceOrientationEvent) {
+      // On iOS 13+, we need to request permission
+      if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+        // iOS 13+ - need to request permission via button click
+        setCompassSupported(true)
+      } else {
+        // Non-iOS or older iOS - add listener directly
+        window.addEventListener('deviceorientation', handleOrientation)
+        setCompassSupported(true)
+      }
+    } else {
+      setCompassError('Compass not supported on this device')
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation)
+    }
+  }, [])
+
+  // Request compass permission for iOS
+  const requestCompassPermission = async () => {
+    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+      try {
+        const permission = await (DeviceOrientationEvent as any).requestPermission()
+        if (permission === 'granted') {
+          window.addEventListener('deviceorientation', (event: DeviceOrientationEvent) => {
+            if (event.alpha !== null) {
+              setCompassHeading(event.alpha)
+            }
+          })
+          setCompassSupported(true)
+          setCompassError(null)
+        } else {
+          setCompassError('Permission denied for compass')
+        }
+      } catch (error) {
+        setCompassError('Error requesting compass permission')
+      }
+    }
+  }
+
+  // Calculate Qibla pointer rotation
+  const getQiblaRotation = () => {
+    if (compassHeading === null) return qiblaAngle
+    // Rotate the pointer to show Qibla direction relative to current heading
+    return qiblaAngle - compassHeading
+  }
+
+  // Load kids content when tab is selected
+  useEffect(() => {
+    if (learnSubTab === 'kids' && kidsNasheeds.length === 0) {
+      loadKidsContent()
+    }
+  }, [learnSubTab])
 
   // Get current guide steps
   const currentSteps = learnSubTab === 'wudu' ? wuduSteps : salahSteps
@@ -1327,14 +1502,100 @@ export default function MasjidHub() {
             {/* Qibla Direction */}
             <div className="card">
               <h3 className="font-bold text-primary mb-2">🧭 Qibla Direction</h3>
-              <div className="flex items-center justify-center py-6">
-                <div className="w-32 h-32 rounded-full border-4 border-primary relative flex items-center justify-center">
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-bold text-primary">N</div>
-                  <div className="w-0 h-0 border-l-8 border-r-8 border-b-[60px] border-l-transparent border-r-transparent border-b-primary rotate-[20deg]" />
-                  <span className="absolute bottom-8 text-xs font-bold">NE ~20°</span>
+              
+              {/* Compass Container */}
+              <div className="flex flex-col items-center py-6">
+                {/* Visual Compass */}
+                <div 
+                  className="w-48 h-48 rounded-full border-4 border-primary relative"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                    transform: compassHeading !== null ? `rotate(${-compassHeading}deg)` : 'none',
+                    transition: 'transform 0.1s ease-out'
+                  }}
+                >
+                  {/* Cardinal Directions */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 text-sm font-bold text-primary">N</div>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-bold text-gray-400">S</div>
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">W</div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">E</div>
+                  
+                  {/* Center point */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full" />
+                  
+                  {/* Tick marks */}
+                  {[...Array(12)].map((_, i) => (
+                    <div 
+                      key={i}
+                      className="absolute top-0 left-1/2 w-0.5 h-2 bg-gray-300 origin-bottom"
+                      style={{ transform: `translateX(-50%) rotate(${i * 30}deg)`, top: '8px' }}
+                    />
+                  ))}
                 </div>
+                
+                {/* Qibla Pointer - Fixed pointing to Qibla */}
+                <div 
+                  className="absolute mt-6"
+                  style={{ 
+                    transform: `rotate(${getQiblaRotation()}deg)`,
+                    transition: 'transform 0.3s ease-out'
+                  }}
+                >
+                  <div className="w-0 h-0 border-l-[15px] border-r-[15px] border-b-[80px] border-l-transparent border-r-transparent border-b-primary opacity-80" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 text-2xl">🕋</div>
+                </div>
+                
+                {/* Current Heading Display */}
+                {compassHeading !== null && (
+                  <div className="mt-20 text-center">
+                    <p className="text-2xl font-bold text-primary">{Math.round(compassHeading)}°</p>
+                    <p className="text-sm text-gray-500">
+                      {compassHeading >= 337.5 || compassHeading < 22.5 ? 'Facing North' :
+                       compassHeading >= 22.5 && compassHeading < 67.5 ? 'Facing North-East' :
+                       compassHeading >= 67.5 && compassHeading < 112.5 ? 'Facing East' :
+                       compassHeading >= 112.5 && compassHeading < 157.5 ? 'Facing South-East' :
+                       compassHeading >= 157.5 && compassHeading < 202.5 ? 'Facing South' :
+                       compassHeading >= 202.5 && compassHeading < 247.5 ? 'Facing South-West' :
+                       compassHeading >= 247.5 && compassHeading < 292.5 ? 'Facing West' :
+                       'Facing North-West'}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Error / Permission Message */}
+                {compassError && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                    <p className="text-sm text-yellow-700">{compassError}</p>
+                  </div>
+                )}
+                
+                {/* iOS Permission Button */}
+                {compassSupported && compassHeading === null && !compassError && (
+                  <button
+                    onClick={requestCompassPermission}
+                    className="btn-primary mt-4"
+                  >
+                    🧭 Enable Compass
+                  </button>
+                )}
+                
+                {!compassSupported && !compassError && (
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                    <p className="text-sm text-gray-600">
+                      Rotate your device to find Qibla direction
+                    </p>
+                  </div>
+                )}
               </div>
-              <p className="text-center text-sm text-gray-500">From Bulawayo, face approximately 20° North-East</p>
+              
+              <div className="text-center pt-4 border-t mt-4">
+                <p className="text-sm text-gray-600">
+                  From Bulawayo, face approximately <strong className="text-primary">20° North-East</strong>
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Qibla direction from Bulawayo, Zimbabwe to Makkah, Saudi Arabia
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -1604,31 +1865,281 @@ export default function MasjidHub() {
             {/* Kids Section */}
             {learnSubTab === 'kids' && (
               <div className="space-y-4">
+                {/* Header */}
                 <div className="card bg-gradient-to-r from-pink-50 to-yellow-50 border-2 border-yellow-200">
                   <div className="text-center py-4">
-                    <span className="text-6xl">🦓</span>
+                    <span className="text-6xl">🌈</span>
                     <h3 className="font-bold text-primary mt-2 text-xl">Assalamu Alaikum!</h3>
                     <p className="text-sm text-gray-600 mt-1">Welcome to Kids Corner!</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <button className="card bg-blue-50 hover:bg-blue-100 text-center py-6">
-                    <span className="text-3xl block mb-2">🎵</span>
-                    <span className="font-medium">Nasheeds</span>
-                  </button>
-                  <button className="card bg-green-50 hover:bg-green-100 text-center py-6">
-                    <span className="text-3xl block mb-2">📖</span>
-                    <span className="font-medium">Sahaba Stories</span>
-                  </button>
-                  <button className="card bg-purple-50 hover:bg-purple-100 text-center py-6">
-                    <span className="text-3xl block mb-2">🎮</span>
-                    <span className="font-medium">Islamic Games</span>
-                  </button>
-                  <button className="card bg-orange-50 hover:bg-orange-100 text-center py-6">
-                    <span className="text-3xl block mb-2">🔤</span>
-                    <span className="font-medium">Learn Arabic</span>
-                  </button>
-                </div>
+
+                {/* Kids Menu */}
+                {kidsSubTab === 'menu' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => { playClickSound(); setKidsSubTab('nasheeds') }}
+                      className="card bg-blue-50 hover:bg-blue-100 text-center py-6 transition-all hover:scale-105"
+                    >
+                      <span className="text-3xl block mb-2">🎵</span>
+                      <span className="font-medium">Nasheeds</span>
+                      <p className="text-xs text-gray-500 mt-1">Islamic songs</p>
+                    </button>
+                    <button 
+                      onClick={() => { playClickSound(); setKidsSubTab('stories') }}
+                      className="card bg-green-50 hover:bg-green-100 text-center py-6 transition-all hover:scale-105"
+                    >
+                      <span className="text-3xl block mb-2">📖</span>
+                      <span className="font-medium">Sahaba Stories</span>
+                      <p className="text-xs text-gray-500 mt-1">Amazing stories</p>
+                    </button>
+                    <button 
+                      onClick={() => { playClickSound(); setKidsSubTab('games') }}
+                      className="card bg-purple-50 hover:bg-purple-100 text-center py-6 transition-all hover:scale-105"
+                    >
+                      <span className="text-3xl block mb-2">🎮</span>
+                      <span className="font-medium">Islamic Games</span>
+                      <p className="text-xs text-gray-500 mt-1">Fun quizzes</p>
+                    </button>
+                    <button 
+                      onClick={() => { playClickSound(); setKidsSubTab('arabic') }}
+                      className="card bg-orange-50 hover:bg-orange-100 text-center py-6 transition-all hover:scale-105"
+                    >
+                      <span className="text-3xl block mb-2">🔤</span>
+                      <span className="font-medium">Learn Arabic</span>
+                      <p className="text-xs text-gray-500 mt-1">ABC in Arabic</p>
+                    </button>
+                  </div>
+                )}
+
+                {/* Nasheeds */}
+                {kidsSubTab === 'nasheeds' && (
+                  <div className="space-y-4">
+                    <button 
+                      onClick={() => setKidsSubTab('menu')}
+                      className="flex items-center gap-2 text-primary font-medium"
+                    >
+                      ← Back to Kids Menu
+                    </button>
+                    <div className="card bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200">
+                      <h4 className="font-bold text-primary text-lg flex items-center gap-2">
+                        🎵 Islamic Nasheeds
+                      </h4>
+                      <p className="text-sm text-gray-600">Beautiful songs for kids</p>
+                    </div>
+                    <div className="space-y-3">
+                      {kidsNasheeds.map((nasheed) => (
+                        <div key={nasheed.id} className="card border-2 border-blue-100">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-3xl">🎤</span>
+                            <div>
+                              <h5 className="font-bold text-primary">{nasheed.title}</h5>
+                              <p className="text-sm arabic-text">{nasheed.titleAr}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">{nasheed.description}</p>
+                          <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                            <iframe
+                              src={nasheed.videoUrl}
+                              title={nasheed.title}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sahaba Stories */}
+                {kidsSubTab === 'stories' && (
+                  <div className="space-y-4">
+                    <button 
+                      onClick={() => { setSelectedStory(null); setKidsSubTab('menu') }}
+                      className="flex items-center gap-2 text-primary font-medium"
+                    >
+                      ← Back to Kids Menu
+                    </button>
+                    <div className="card bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-200">
+                      <h4 className="font-bold text-primary text-lg flex items-center gap-2">
+                        📖 Sahaba Stories
+                      </h4>
+                      <p className="text-sm text-gray-600">Learn from our heroes</p>
+                    </div>
+                    
+                    {!selectedStory ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        {kidsStories.map((story) => (
+                          <button
+                            key={story.id}
+                            onClick={() => { playClickSound(); setSelectedStory(story) }}
+                            className="card bg-white border-2 border-green-100 hover:border-green-300 text-center py-4 transition-all hover:scale-105"
+                          >
+                            <span className="text-3xl block mb-2">📚</span>
+                            <p className="font-medium text-sm">{story.title}</p>
+                            <p className="text-xs text-gray-500 arabic-text">{story.titleAr}</p>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="card">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="text-4xl">📖</span>
+                          <div>
+                            <h5 className="font-bold text-lg text-primary">{selectedStory.title}</h5>
+                            <p className="arabic-text">{selectedStory.titleAr}</p>
+                            <p className="text-sm text-gray-500">{selectedStory.description}</p>
+                          </div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4 text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                          {selectedStory.content}
+                        </div>
+                        <button
+                          onClick={() => setSelectedStory(null)}
+                          className="btn-outline w-full mt-4"
+                        >
+                          Read Another Story
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Islamic Games */}
+                {kidsSubTab === 'games' && (
+                  <div className="space-y-4">
+                    <button 
+                      onClick={() => { setActiveQuiz(null); setShowQuizResult(false); setKidsSubTab('menu') }}
+                      className="flex items-center gap-2 text-primary font-medium"
+                    >
+                      ← Back to Kids Menu
+                    </button>
+                    <div className="card bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200">
+                      <h4 className="font-bold text-primary text-lg flex items-center gap-2">
+                        🎮 Islamic Quizzes
+                      </h4>
+                      <p className="text-sm text-gray-600">Test your knowledge!</p>
+                    </div>
+
+                    {!activeQuiz ? (
+                      <div className="space-y-3">
+                        {kidsGames.map((game) => (
+                          <button
+                            key={game.id}
+                            onClick={() => { playClickSound(); startQuiz(game) }}
+                            className="card bg-white border-2 border-purple-100 hover:border-purple-300 text-left p-4 transition-all hover:scale-[1.02] w-full"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-3xl">🎯</span>
+                              <div>
+                                <h5 className="font-bold text-primary">{game.title}</h5>
+                                <p className="text-sm text-gray-500">{game.description}</p>
+                                <p className="text-xs text-purple-600 mt-1">{game.questions.length} questions</p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="card">
+                        {showQuizResult ? (
+                          <div className="text-center py-6">
+                            <span className="text-6xl block mb-4">
+                              {quizScore === activeQuiz.questions.length ? '🏆' : quizScore >= activeQuiz.questions.length / 2 ? '⭐' : '💪'}
+                            </span>
+                            <h4 className="text-2xl font-bold text-primary mb-2">
+                              {quizScore === activeQuiz.questions.length ? 'Perfect!' : quizScore >= activeQuiz.questions.length / 2 ? 'Great Job!' : 'Keep Learning!'}
+                            </h4>
+                            <p className="text-xl text-gray-600">
+                              You got {quizScore} out of {activeQuiz.questions.length} correct!
+                            </p>
+                            <button
+                              onClick={() => { playClickSound(); startQuiz(activeQuiz) }}
+                              className="btn-primary mt-6"
+                            >
+                              Try Again
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-sm text-gray-500">
+                                Question {currentQuestion + 1} of {activeQuiz.questions.length}
+                              </span>
+                              <span className="text-sm font-bold text-primary">
+                                Score: {quizScore}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                              <div 
+                                className="bg-purple-500 h-2 rounded-full transition-all"
+                                style={{ width: `${((currentQuestion + 1) / activeQuiz.questions.length) * 100}%` }}
+                              />
+                            </div>
+                            <h4 className="text-lg font-bold text-gray-800 mb-4">
+                              {activeQuiz.questions[currentQuestion].question}
+                            </h4>
+                            <div className="space-y-2">
+                              {activeQuiz.questions[currentQuestion].options.map((option: string, idx: number) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleQuizAnswer(idx)}
+                                  disabled={selectedAnswer !== null}
+                                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                    selectedAnswer === null 
+                                      ? 'border-gray-200 hover:border-purple-400 hover:bg-purple-50'
+                                      : selectedAnswer === idx
+                                        ? idx === activeQuiz.questions[currentQuestion].correct
+                                          ? 'border-green-500 bg-green-50 text-green-700'
+                                          : 'border-red-500 bg-red-50 text-red-700'
+                                        : idx === activeQuiz.questions[currentQuestion].correct
+                                          ? 'border-green-500 bg-green-50 text-green-700'
+                                          : 'border-gray-200 text-gray-500'
+                                  }`}
+                                >
+                                  <span className="font-medium">{String.fromCharCode(65 + idx)}.</span> {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Learn Arabic */}
+                {kidsSubTab === 'arabic' && (
+                  <div className="space-y-4">
+                    <button 
+                      onClick={() => setKidsSubTab('menu')}
+                      className="flex items-center gap-2 text-primary font-medium"
+                    >
+                      ← Back to Kids Menu
+                    </button>
+                    <div className="card bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-200">
+                      <h4 className="font-bold text-primary text-lg flex items-center gap-2">
+                        🔤 Learn Arabic Letters
+                      </h4>
+                      <p className="text-sm text-gray-600">Learn the Arabic alphabet!</p>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {kidsArabic.map((letter) => (
+                        <div 
+                          key={letter.id}
+                          className="card bg-white border-2 border-orange-100 text-center p-3 hover:border-orange-300 transition-all hover:scale-105 cursor-pointer"
+                        >
+                          <p className="text-4xl arabic-text text-primary">{letter.letter}</p>
+                          <p className="text-xs font-medium text-gray-600 mt-1">{letter.letterName}</p>
+                          <p className="text-sm arabic-text text-gray-500">{letter.word}</p>
+                          <p className="text-xs text-gray-400">{letter.wordMeaning}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1995,6 +2506,9 @@ export default function MasjidHub() {
                             <button 
                               onClick={() => { 
                                 playClickSound();
+                                if (activeCommentAnnouncement !== ann.id) {
+                                  loadComments(ann.id);
+                                }
                                 setActiveCommentAnnouncement(activeCommentAnnouncement === ann.id ? null : ann.id);
                               }}
                               className="text-sm text-primary font-medium flex items-center gap-1"
@@ -2004,6 +2518,13 @@ export default function MasjidHub() {
                             
                             {activeCommentAnnouncement === ann.id && (
                               <div className="mt-3 space-y-2">
+                                {/* Loading indicator */}
+                                {loadingComments === ann.id && (
+                                  <div className="text-center py-4 text-gray-500 text-sm">
+                                    Loading comments...
+                                  </div>
+                                )}
+                                
                                 {/* Existing Comments */}
                                 {(announcementComments[ann.id] || []).map((comment) => (
                                   <div key={comment.id} className="bg-gray-50 rounded-lg p-2">
@@ -2012,6 +2533,11 @@ export default function MasjidHub() {
                                     <p className="text-xs text-gray-400 mt-1">{new Date(comment.createdAt).toLocaleString()}</p>
                                   </div>
                                 ))}
+                                
+                                {/* No comments message */}
+                                {(!announcementComments[ann.id] || announcementComments[ann.id].length === 0) && loadingComments !== ann.id && (
+                                  <p className="text-sm text-gray-400 text-center py-2">No comments yet. Be the first to comment!</p>
+                                )}
                                 
                                 {/* Add Comment Form */}
                                 <div className="bg-blue-50 rounded-lg p-3">
@@ -2030,24 +2556,7 @@ export default function MasjidHub() {
                                     onChange={(e) => setCommentForm({ ...commentForm, content: e.target.value })}
                                   />
                                   <button
-                                    onClick={async () => {
-                                      if (!commentForm.name || !commentForm.content) return;
-                                      playClickSound();
-                                      const newComment: Comment = {
-                                        id: Date.now().toString(),
-                                        announcementId: ann.id,
-                                        name: commentForm.name,
-                                        content: commentForm.content,
-                                        createdAt: new Date().toISOString()
-                                      };
-                                      setAnnouncementComments(prev => ({
-                                        ...prev,
-                                        [ann.id]: [...(prev[ann.id] || []), newComment]
-                                      }));
-                                      setCommentForm({ name: '', content: '' });
-                                      setCommentSubmitted(true);
-                                      setTimeout(() => setCommentSubmitted(false), 2000);
-                                    }}
+                                    onClick={() => handleSubmitComment(ann.id)}
                                     disabled={!commentForm.name || !commentForm.content}
                                     className="btn-primary w-full mt-2 text-sm disabled:opacity-50"
                                   >

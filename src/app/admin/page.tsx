@@ -409,15 +409,30 @@ export default function AdminPanel() {
           </div>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-            <p className="text-xs text-gray-500 text-center mb-2">Test Accounts:</p>
+            <p className="text-xs text-gray-500 text-center mb-2">Admin Accounts:</p>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-white p-2 rounded-lg border">
-                <p className="font-medium text-primary">Imam</p>
+                <p className="font-medium text-primary">🕌 Imam</p>
                 <p className="text-gray-500">imam@zeenatulislam.org</p>
                 <p className="text-gray-400">Password: imam2024</p>
               </div>
               <div className="bg-white p-2 rounded-lg border">
-                <p className="font-medium text-primary">Tech Support</p>
+                <p className="font-medium text-primary">👤 Chairman</p>
+                <p className="text-gray-500">chairman@zeenatulislam.org</p>
+                <p className="text-gray-400">Password: chairman2024</p>
+              </div>
+              <div className="bg-white p-2 rounded-lg border">
+                <p className="font-medium text-primary">💰 Treasurer</p>
+                <p className="text-gray-500">treasurer@zeenatulislam.org</p>
+                <p className="text-gray-400">Password: treasurer2024</p>
+              </div>
+              <div className="bg-white p-2 rounded-lg border">
+                <p className="font-medium text-primary">📝 Secretary</p>
+                <p className="text-gray-500">secretary@zeenatulislam.org</p>
+                <p className="text-gray-400">Password: secretary2024</p>
+              </div>
+              <div className="bg-white p-2 rounded-lg border col-span-2">
+                <p className="font-medium text-primary">💻 Tech Support</p>
                 <p className="text-gray-500">tech@zeenatulislam.org</p>
                 <p className="text-gray-400">Password: tech2024</p>
               </div>
@@ -841,13 +856,25 @@ export default function AdminPanel() {
             
             <div className="bg-yellow-50 rounded-xl p-4">
               <h3 className="font-bold text-yellow-800 mb-2">🔑 Login Credentials</h3>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-yellow-700">Imam Account:</span>
+                  <span className="text-yellow-700">🕌 Imam:</span>
                   <span className="font-mono text-yellow-800">imam@zeenatulislam.org / imam2024</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-yellow-700">Tech Account:</span>
+                  <span className="text-yellow-700">👤 Chairman:</span>
+                  <span className="font-mono text-yellow-800">chairman@zeenatulislam.org / chairman2024</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-yellow-700">💰 Treasurer:</span>
+                  <span className="font-mono text-yellow-800">treasurer@zeenatulislam.org / treasurer2024</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-yellow-700">📝 Secretary:</span>
+                  <span className="font-mono text-yellow-800">secretary@zeenatulislam.org / secretary2024</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-yellow-700">💻 Tech:</span>
                   <span className="font-mono text-yellow-800">tech@zeenatulislam.org / tech2024</span>
                 </div>
               </div>

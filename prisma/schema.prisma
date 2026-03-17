@@ -176,6 +176,7 @@ model Announcement {
   priority  Int      @default(0)
   createdAt DateTime  @default(now())
   expiresAt DateTime?
+  comments  Comment[]
 }
 
 model Notification {
@@ -460,4 +461,32 @@ model MarriageInterest {
   respondedAt       DateTime?
   
   @@unique([senderProfileId, receiverProfileId])
+}
+
+// Announcement Comments
+model Comment {
+  id             String   @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  name           String
+  content        String
+  isApproved     Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+// Kids Content (Nasheeds, Stories, Games, etc.)
+model KidsContent {
+  id          String   @id @default(cuid())
+  category    String   // nasheed, story, game, arabic
+  title       String
+  titleAr     String?
+  description String?
+  content     String?  // JSON for structured content
+  audioUrl    String?
+  videoUrl    String?  // YouTube embed URL
+  imageUrl    String?
+  quizData    String?  // JSON for quiz questions
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
