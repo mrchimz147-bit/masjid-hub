@@ -246,6 +246,234 @@ interface DailyContent {
   date: string
 }
 
+// Hardcoded Wudu Steps - Works without database
+const HARDCODED_WUDU_STEPS: GuideStep[] = [
+  {
+    id: 'wudu-1',
+    category: 'wudu',
+    stepNumber: 1,
+    title: 'Niyyah (Intention)',
+    arabicText: 'نِيَّةُ الْوُضُوءِ',
+    transliteration: 'Niy-yat al-wuḍū',
+    translation: 'Make the intention in your heart to perform wudu for the sake of Allah. Intention is the foundation of all acts of worship.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-2',
+    category: 'wudu',
+    stepNumber: 2,
+    title: 'Bismillah',
+    arabicText: 'بِسْمِ اللَّهِ',
+    transliteration: 'Bis-mil-lāh',
+    translation: 'Say "Bismillah" (In the name of Allah) before beginning wudu. This brings blessing to your ablution.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-3',
+    category: 'wudu',
+    stepNumber: 3,
+    title: 'Wash Hands',
+    arabicText: 'غَسْلُ الْيَدَيْنِ',
+    transliteration: 'Ghas-lul yadayn',
+    translation: 'Wash both hands up to the wrists three times, starting with the right hand. Clean between the fingers thoroughly.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-4',
+    category: 'wudu',
+    stepNumber: 4,
+    title: 'Rinse Mouth',
+    arabicText: 'الْمَضْمَضَةُ',
+    transliteration: 'Al-maḍ-ma-ḍah',
+    translation: 'Rinse your mouth three times with water using your right hand. Use a miswak or toothbrush if available.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-5',
+    category: 'wudu',
+    stepNumber: 5,
+    title: 'Clean Nose',
+    arabicText: 'الِاسْتِنْشَاقُ',
+    transliteration: 'Al-is-tin-shāq',
+    translation: 'Inhale water into your nose gently and then blow it out three times. Clean the nostrils with the left hand.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-6',
+    category: 'wudu',
+    stepNumber: 6,
+    title: 'Wash Face',
+    arabicText: 'غَسْلُ الْوَجْهِ',
+    transliteration: 'Ghas-lul wajh',
+    translation: 'Wash your entire face three times, from the hairline to the chin and from ear to ear. Ensure water reaches all areas.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-7',
+    category: 'wudu',
+    stepNumber: 7,
+    title: 'Wash Arms',
+    arabicText: 'غَسْلُ الذِّرَاعَيْنِ',
+    transliteration: 'Ghas-ludh-dhir-\'ayn',
+    translation: 'Wash both arms from the fingertips up to and including the elbows three times, starting with the right arm.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-8',
+    category: 'wudu',
+    stepNumber: 8,
+    title: 'Wipe Head',
+    arabicText: 'مَسْحُ الرَّأْسِ',
+    transliteration: 'Mas-hur ra\'s',
+    translation: 'Wipe your entire head once with wet hands, from the forehead to the back of the head and back to the forehead.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-9',
+    category: 'wudu',
+    stepNumber: 9,
+    title: 'Clean Ears',
+    arabicText: 'تَنْظِيفُ الأُذُنَيْنِ',
+    transliteration: 'Tan-ẓīful udhu-nayn',
+    translation: 'Wipe the inside of both ears with your index fingers and the outside with your thumbs, using fresh water.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-10',
+    category: 'wudu',
+    stepNumber: 10,
+    title: 'Wash Feet',
+    arabicText: 'غَسْلُ الْقَدَمَيْنِ',
+    transliteration: 'Ghas-lul qa-da-mayn',
+    translation: 'Wash both feet up to and including the ankles three times, starting with the right foot. Clean between the toes.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-11',
+    category: 'wudu',
+    stepNumber: 11,
+    title: 'Recite Shahada',
+    arabicText: 'أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ',
+    transliteration: 'Ash-ha-du an lā ilā-ha il-lal-lāh waḥ-dahū lā sha-rī-ka lah, wa ash-ha-du an-na Muḥam-ma-dan \'ab-duhū wa ra-sū-luh',
+    translation: 'I bear witness that there is no deity except Allah, alone without partner, and I bear witness that Muhammad is His servant and messenger.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'wudu-12',
+    category: 'wudu',
+    stepNumber: 12,
+    title: 'Dua After Wudu',
+    arabicText: 'اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ وَاجْعَلْنِي مِنَ الْمُتَطَهِّرِينَ',
+    transliteration: 'Al-lāhum-maj-\'al-nī mi-nat-taw-wā-bīn, waj-\'al-nī mi-nal-mu-ta-tah-hirīn',
+    translation: 'O Allah, make me among those who constantly turn to You in repentance, and make me among those who purify themselves.',
+    imageUrl: null,
+    audioUrl: null
+  }
+]
+
+// Hardcoded Salah Steps - Works without database
+const HARDCODED_SALAH_STEPS: GuideStep[] = [
+  {
+    id: 'salah-1',
+    category: 'salah',
+    stepNumber: 1,
+    title: 'Stand Facing Qibla',
+    arabicText: 'الْقِيَامُ',
+    transliteration: 'Al-qiyām',
+    translation: 'Stand upright facing the Qibla (direction of the Ka\'bah in Makkah). Make the intention in your heart for the specific prayer you are about to perform.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-2',
+    category: 'salah',
+    stepNumber: 2,
+    title: 'Takbir al-Ihram',
+    arabicText: 'اللَّهُ أَكْبَرُ',
+    transliteration: 'Al-lāhu Ak-bar',
+    translation: 'Raise both hands to the level of your ears and say "Allahu Akbar" (Allah is the Greatest). This enters you into the state of prayer.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-3',
+    category: 'salah',
+    stepNumber: 3,
+    title: 'Recite Al-Fatiha',
+    arabicText: 'الْفَاتِحَةُ',
+    transliteration: 'Al-Fā-ti-ḥah',
+    translation: 'Recite Surah Al-Fatiha, followed by another Surah or verses from the Quran. This is an essential pillar of the prayer.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-4',
+    category: 'salah',
+    stepNumber: 4,
+    title: 'Ruku (Bow)',
+    arabicText: 'الرُّكُوعُ',
+    transliteration: 'Ar-ru-kū',
+    translation: 'Bow down, placing your hands on your knees with your back straight. Say "Subḥāna Rabbiyal Aẓīm" (Glory be to my Lord, the Most Great) three times.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-5',
+    category: 'salah',
+    stepNumber: 5,
+    title: 'I\'tidal (Stand)',
+    arabicText: 'الِاعْتِدَالُ',
+    transliteration: 'Al-i\'ti-dāl',
+    translation: 'Rise from bowing while saying "Sami\'al-lāhu li-man ḥamidah" (Allah hears the one who praises Him), then say "Rabbanā wa lakal-ḥamd" (Our Lord, to You is all praise).',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-6',
+    category: 'salah',
+    stepNumber: 6,
+    title: 'Sujud (Prostrate)',
+    arabicText: 'السُّجُودُ',
+    transliteration: 'As-su-jūd',
+    translation: 'Prostrate with your forehead, nose, hands, knees, and toes touching the ground. Say "Subḥāna Rabbiyal A\'lā" (Glory be to my Lord, the Most High) three times.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-7',
+    category: 'salah',
+    stepNumber: 7,
+    title: 'Jalsa (Sit)',
+    arabicText: 'الْجَلْسَةُ',
+    transliteration: 'Al-jal-sah',
+    translation: 'Sit briefly between the two prostrations, resting on your left foot while keeping the right foot upright. Then perform the second prostration.',
+    imageUrl: null,
+    audioUrl: null
+  },
+  {
+    id: 'salah-8',
+    category: 'salah',
+    stepNumber: 8,
+    title: 'Tashahhud & Salam',
+    arabicText: 'التَّشَهُّدُ وَالسَّلَامُ',
+    transliteration: 'At-ta-shah-hud was-salām',
+    translation: 'Recite the Tashahhud, then send blessings upon the Prophet. End the prayer by turning your head to the right saying "As-salāmu \'alaykum wa raḥmatul-lāh" and then to the left.',
+    imageUrl: null,
+    audioUrl: null
+  }
+]
+
 // API Fetcher with offline caching
 async function fetchData<T>(endpoint: string, cacheKey: string): Promise<T> {
   try {
@@ -348,8 +576,8 @@ export default function MasjidHub() {
 
   // Data states
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([])
-  const [wuduSteps, setWuduSteps] = useState<GuideStep[]>([])
-  const [salahSteps, setSalahSteps] = useState<GuideStep[]>([])
+  const [wuduSteps] = useState<GuideStep[]>(HARDCODED_WUDU_STEPS)
+  const [salahSteps] = useState<GuideStep[]>(HARDCODED_SALAH_STEPS)
   const [duas, setDuas] = useState<Dua[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [surahs, setSurahs] = useState<Surah[]>([])
@@ -363,6 +591,7 @@ export default function MasjidHub() {
   // UI states
   const [loading, setLoading] = useState(true)
   const [currentGuideStep, setCurrentGuideStep] = useState(0)
+  const [guideAudioPlaying, setGuideAudioPlaying] = useState<string | null>(null)
   const [selectedDuaCategory, setSelectedDuaCategory] = useState<string>('all')
   const [questionText, setQuestionText] = useState('')
   const [questionSubmitted, setQuestionSubmitted] = useState(false)
@@ -488,6 +717,37 @@ export default function MasjidHub() {
     })
   }
 
+  // Web Speech API for Arabic text-to-speech
+  const speakArabicText = (text: string, stepId: string) => {
+    // Stop if already playing this step
+    if (guideAudioPlaying === stepId && window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel()
+      setGuideAudioPlaying(null)
+      return
+    }
+
+    // Cancel any existing speech
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'ar-SA'
+    utterance.rate = 0.8
+    utterance.pitch = 1
+
+    // Try to find an Arabic voice
+    const voices = window.speechSynthesis.getVoices()
+    const arabicVoice = voices.find(v => v.lang.includes('ar')) || voices[0]
+    if (arabicVoice) {
+      utterance.voice = arabicVoice
+    }
+
+    utterance.onstart = () => setGuideAudioPlaying(stepId)
+    utterance.onend = () => setGuideAudioPlaying(null)
+    utterance.onerror = () => setGuideAudioPlaying(null)
+
+    window.speechSynthesis.speak(utterance)
+  }
+
   // Current time display
   const [currentTime, setCurrentTime] = useState(formatBulawayoTime())
   
@@ -516,9 +776,8 @@ export default function MasjidHub() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [pt, guides, d, ann, hifz, tajweed, arabic, qurbani, streams, tributesData, photosData, dailyContentData] = await Promise.all([
+        const [pt, d, ann, hifz, tajweed, arabic, qurbani, streams, tributesData, photosData, dailyContentData] = await Promise.all([
           fetchData<PrayerTime[]>('prayer-times', 'prayer-times'),
-          fetchData<GuideStep[]>('guides', 'guides'),
           fetchData<Dua[]>('duas', 'duas'),
           fetchData<Announcement[]>('announcements', 'announcements'),
           fetchData<{surahs: Surah[]}>('hifz?all=true', 'hifz'),
@@ -532,8 +791,7 @@ export default function MasjidHub() {
         ])
 
         setPrayerTimes(pt)
-        setWuduSteps(guides.filter(g => g.category === 'wudu'))
-        setSalahSteps(guides.filter(g => g.category === 'salah'))
+        // Wudu and Salah steps are now hardcoded - no database dependency
         setDuas(d)
         setAnnouncements(ann)
         setSurahs(hifz.surahs || [])
@@ -548,7 +806,7 @@ export default function MasjidHub() {
 
         setCachedData({
           prayerTimes: pt,
-          guides: guides,
+          guides: [...HARDCODED_WUDU_STEPS, ...HARDCODED_SALAH_STEPS],
           duas: d,
           announcements: ann,
         })
@@ -1626,34 +1884,138 @@ export default function MasjidHub() {
             </div>
 
             {/* Guide Carousel */}
-            {(learnSubTab === 'wudu' || learnSubTab === 'salah') && currentSteps.length > 0 && (
-              <div>
-                <div className="guide-step">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="guide-step-number">{currentSteps[currentGuideStep]?.stepNumber}</div>
-                    <h3 className="text-lg font-bold text-primary">{currentSteps[currentGuideStep]?.title}</h3>
+            {(learnSubTab === 'wudu' || learnSubTab === 'salah') && (
+              <div className="space-y-4">
+                {/* Header with progress */}
+                <div className="card bg-gradient-to-r from-primary to-emerald-700 text-white">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg">
+                      {learnSubTab === 'wudu' ? '💧 Wudu Guide' : '🕌 Salah Guide'}
+                    </h3>
+                    <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                      Step {currentGuideStep + 1} of {currentSteps.length}
+                    </span>
                   </div>
-                  {currentSteps[currentGuideStep]?.arabicText && (
-                    <div className="bg-primary/5 rounded-lg p-4 mb-4">
-                      <p className="arabic-text text-2xl">{currentSteps[currentGuideStep]?.arabicText}</p>
+                  {/* Progress bar */}
+                  <div className="mt-3 w-full bg-white/20 rounded-full h-2">
+                    <div 
+                      className="bg-white h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${((currentGuideStep + 1) / currentSteps.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {currentSteps.length > 0 ? (
+                  <>
+                    {/* Step Card */}
+                    <div className="card border-2 border-primary/20 shadow-lg">
+                      {/* Step Number Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold shadow-md">
+                            {currentSteps[currentGuideStep]?.stepNumber}
+                          </div>
+                          <h3 className="text-xl font-bold text-primary">
+                            {currentSteps[currentGuideStep]?.title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Arabic Text */}
+                      {currentSteps[currentGuideStep]?.arabicText && (
+                        <div className="bg-gradient-to-r from-primary/5 to-emerald-50 rounded-xl p-6 mb-4 text-center border border-primary/10">
+                          <p className="arabic-text text-3xl md:text-4xl leading-relaxed" dir="rtl">
+                            {currentSteps[currentGuideStep]?.arabicText}
+                          </p>
+                          
+                          {/* Audio Play Button */}
+                          <button
+                            onClick={() => {
+                              playClickSound()
+                              speakArabicText(currentSteps[currentGuideStep]?.arabicText || '', currentSteps[currentGuideStep]?.id || '')
+                            }}
+                            className={`mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
+                              guideAudioPlaying === currentSteps[currentGuideStep]?.id 
+                                ? 'bg-red-500 text-white' 
+                                : 'bg-primary text-white hover:bg-primary/90'
+                            }`}
+                          >
+                            {guideAudioPlaying === currentSteps[currentGuideStep]?.id ? (
+                              <>
+                                <span className="text-lg">⏹️</span>
+                                Stop Audio
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-lg">🔊</span>
+                                Play Audio
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Transliteration */}
+                      {currentSteps[currentGuideStep]?.transliteration && (
+                        <div className="mb-3 px-2">
+                          <p className="text-sm text-gray-500 mb-1">Transliteration:</p>
+                          <p className="transliteration text-lg md:text-xl italic text-gray-700">
+                            {currentSteps[currentGuideStep]?.transliteration}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Translation */}
+                      {currentSteps[currentGuideStep]?.translation && (
+                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-primary">
+                          <p className="text-sm text-gray-500 mb-1">Translation:</p>
+                          <p className="text-gray-700 leading-relaxed">
+                            {currentSteps[currentGuideStep]?.translation}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {currentSteps[currentGuideStep]?.transliteration && (
-                    <p className="transliteration text-lg mb-2">{currentSteps[currentGuideStep]?.transliteration}</p>
-                  )}
-                  {currentSteps[currentGuideStep]?.translation && (
-                    <p className="text-gray-700 mb-4">{currentSteps[currentGuideStep]?.translation}</p>
-                  )}
-                </div>
-                <div className="carousel-dots">
-                  {currentSteps.map((_, idx) => (
-                    <button key={idx} onClick={() => setCurrentGuideStep(idx)} className={`carousel-dot ${idx === currentGuideStep ? 'active' : ''}`} />
-                  ))}
-                </div>
-                <div className="flex justify-between mt-4 px-4">
-                  <button onClick={() => setCurrentGuideStep(Math.max(0, currentGuideStep - 1))} disabled={currentGuideStep === 0} className="btn-outline disabled:opacity-50">← Previous</button>
-                  <button onClick={() => setCurrentGuideStep(Math.min(currentSteps.length - 1, currentGuideStep + 1))} disabled={currentGuideStep === currentSteps.length - 1} className="btn-primary disabled:opacity-50">Next →</button>
-                </div>
+
+                    {/* Navigation Dots */}
+                    <div className="flex justify-center gap-2 flex-wrap py-2">
+                      {currentSteps.map((step, idx) => (
+                        <button 
+                          key={step.id}
+                          onClick={() => setCurrentGuideStep(idx)} 
+                          className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
+                            idx === currentGuideStep 
+                              ? 'bg-primary text-white scale-110 shadow-md' 
+                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          }`}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    <div className="flex justify-between items-center gap-4 px-2">
+                      <button 
+                        onClick={() => { playClickSound(); setCurrentGuideStep(Math.max(0, currentGuideStep - 1)) }} 
+                        disabled={currentGuideStep === 0} 
+                        className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                      >
+                        ← Previous
+                      </button>
+                      <button 
+                        onClick={() => { playClickSound(); setCurrentGuideStep(Math.min(currentSteps.length - 1, currentGuideStep + 1)) }} 
+                        disabled={currentGuideStep === currentSteps.length - 1} 
+                        className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="card text-center py-8">
+                    <p className="text-gray-500">Loading guide steps...</p>
+                  </div>
+                )}
               </div>
             )}
 

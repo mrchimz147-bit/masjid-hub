@@ -364,3 +364,78 @@ Fix multiple sections that were not working properly:
 
 **Build Status:** ✅ No TypeScript errors
 **Lint Status:** ✅ No errors
+
+---
+## Task ID: fix-guides - Super Z
+### Work Task
+Fix Wudu and Salah guide sections to work properly on Vercel by removing SQLite database dependency and using hardcoded comprehensive guide data.
+
+### Work Summary
+**Completed Implementation:**
+
+1. **Hardcoded Guide Data (`src/app/page.tsx`):**
+   - Added `HARDCODED_WUDU_STEPS` constant with 12 comprehensive steps:
+     1. Niyyah (Intention) - نِيَّةُ الْوُضُوءِ
+     2. Bismillah - بِسْمِ اللَّهِ
+     3. Wash Hands - غَسْلُ الْيَدَيْنِ
+     4. Rinse Mouth - الْمَضْمَضَةُ
+     5. Clean Nose - الِاسْتِنْشَاقُ
+     6. Wash Face - غَسْلُ الْوَجْهِ
+     7. Wash Arms - غَسْلُ الذِّرَاعَيْنِ
+     8. Wipe Head - مَسْحُ الرَّأْسِ
+     9. Clean Ears - تَنْظِيفُ الأُذُنَيْنِ
+     10. Wash Feet - غَسْلُ الْقَدَمَيْنِ
+     11. Recite Shahada - Full Shahada in Arabic
+     12. Dua After Wudu - اللَّهُمَّ اجْعَلْنِي مِنَ التَّوَّابِينَ
+   
+   - Added `HARDCODED_SALAH_STEPS` constant with 8 comprehensive steps:
+     1. Stand Facing Qibla - الْقِيَامُ
+     2. Takbir al-Ihram - اللَّهُ أَكْبَرُ
+     3. Recite Al-Fatiha - الْفَاتِحَةُ
+     4. Ruku (Bow) - الرُّكُوعُ
+     5. I'tidal (Stand) - الِاعْتِدَالُ
+     6. Sujud (Prostrate) - السُّجُودُ
+     7. Jalsa (Sit) - الْجَلْسَةُ
+     8. Tashahhud & Salam - التَّشَهُّدُ وَالسَّلَامُ
+
+2. **State Management Updates:**
+   - Changed `wuduSteps` and `salahSteps` from API-fetched to hardcoded constants
+   - Added `guideAudioPlaying` state for tracking audio playback
+   - Removed database-dependent guide loading from `loadData()` function
+
+3. **Web Speech API Audio Playback:**
+   - Added `speakArabicText()` function using Web Speech API
+   - Supports Arabic text-to-speech with `ar-SA` language code
+   - Auto-detects Arabic voices from available system voices
+   - Play/Stop toggle functionality with visual feedback
+
+4. **Enhanced Guide Carousel UI:**
+   - **Header with Progress:**
+     - Guide title (💧 Wudu Guide / 🕌 Salah Guide)
+     - Progress indicator showing "Step X of Y"
+     - Animated progress bar
+   
+   - **Step Card:**
+     - Large circular step number badge (1-12/8)
+     - Step title prominently displayed
+     - Large Arabic text (3xl/4xl) in gradient box
+     - "Play Audio" button with play/stop states
+     - Transliteration in italic
+     - Translation with left border accent
+   
+   - **Navigation:**
+     - Numbered dots (1, 2, 3...) instead of plain dots
+     - Previous/Next buttons with proper disabled states
+     - Click sound feedback on navigation
+   
+   - **Fallback:**
+     - "Loading guide steps..." message when data not available
+
+5. **Vercel Compatibility:**
+   - No database dependency for guides
+   - Works immediately on page load
+   - Offline-capable (data embedded in code)
+   - No API calls needed for guide content
+
+**Build Status:** ✅ No errors in main application code
+**Lint Status:** ✅ No errors in page.tsx (only unrelated script files have warnings)
