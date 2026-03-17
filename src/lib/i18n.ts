@@ -172,6 +172,13 @@ export const translations = {
     inLovingMemory: 'In Loving Memory of',
     mayAllahHaveMercy: '(May Allah have mercy on him)',
     sadaqahJaariyah: 'Sadaqah Jaariyah',
+    dedicationTribute: 'Hajji Dawood Cassim was a pillar of our community - a man of unwavering faith, boundless generosity, and dedication to the House of Allah. His legacy lives on through every soul he touched, every prayer he led, and every heart he warmed with his kindness.',
+    dedicationApp: 'This application is dedicated as a Sadaqah Jaariyah (continuous charity) in his blessed memory. May every prayer time reminder, every verse of Quran memorized, every act of worship facilitated through this app be a source of eternal reward for him and his family.',
+    dedicationDua: 'O Allah, make this work a continuous charity for him',
+    reciteQuranForSoul: 'Recite Quran for His Soul',
+    
+    // Instructions
+    instructions: 'All Instructions Apply Here',
     
     // Daily Content
     hadithOfTheDay: 'Hadith of the Day',
@@ -294,6 +301,24 @@ export const translations = {
     learning: 'Kudzidza',
     revision: 'Kudzokorora',
     
+    // Tajweed
+    tajweedLessons: 'Dzidzo dzeTajweed',
+    tajweedDesc: 'Dzidza kunyora Quran zvakanaka',
+    makharij: 'Makharij (Nzvimbo dzeKunyora)',
+    sifaat: 'Sifaat (Huwandu hweMavara)',
+    nunSakinah: 'Mutemo waNun Sakinah',
+    meemSakinah: 'Mutemo waMeem Sakinah',
+    madd: 'Madd (Kuredzesa)',
+    waqf: 'Waqf (Mitemo yeKumira)',
+    view: 'Ona',
+    
+    // Arabic
+    learnArabicTitle: 'Dzidza Chiarabhu',
+    learnArabicDesc: 'Dzidza mutauro weChiarabhu',
+    arabicAlphabet: 'Alphabet yeChiarabhu',
+    commonVocabulary: 'Mashoko Anowanzoshandiswa',
+    commonPhrases: 'Mitaro Inowanzoshandiswa',
+    
     // Community
     askSheikh: 'Bvunza Sheikh',
     askQuestionDesc: 'Endesa mibvunzo yako yaIslam kuna Imam',
@@ -325,6 +350,43 @@ export const translations = {
     register: 'Nyoresa',
     registrationSuccess: 'Wanyoreswa zvakanaka!',
     
+    // Qurbani
+    qurbaniTitle: 'Mibairo yeQurbani',
+    qurbaniDesc: 'Chinjai Qurbani yeEid al-Adha',
+    selectAnimal: 'Sarudza Mhuka',
+    shares: 'Vashare',
+    yourName: 'Zita Rako',
+    donorPhone: 'Nhamba yerunhare',
+    contribute: 'Chinjai',
+    filled: 'yazara',
+    full: 'Yazara',
+    
+    // Live Stream
+    liveStream: 'Maonero Epfungwa',
+    liveStreamDesc: 'Ona mapurogiramu ane hupenyu kubva kuMasjid',
+    upcomingStreams: 'Mapurogiramu Anotevera',
+    noLiveStreams: 'Hapana mapurogiramu panguva ino',
+    
+    // Alerts
+    emergencyAlert: 'Chiziviso cheDambudziko',
+    emergencyDesc: 'Kune nhengo dzinoda rubatsiro - tumira chiziviso kune vashandi',
+    sendAlert: 'Tumira Chiziviso',
+    alertSent: 'Chiziviso chatumirwa! Rubatsiro rwuri kuuya.',
+    volunteers: 'Vashandi',
+    volunteersDesc: 'Nhengo dzinogona kudaidzwa kuti dzitore mazano uye kubatsira papikisiro.',
+    vulnerableMembers: 'Nhengo Dzinoda Rubatsiro',
+    vulnerableDesc: 'Vakwegura, varwari, kana nhenga dzinogara dzoga dzinogona kuda kutorwa mazano.',
+    
+    // Photo Album
+    photoAlbum: 'Chitumbu cheMifananidzo',
+    uploadPhoto: 'Tumira Mufananidzo',
+    photoTitle: 'Zita reMufananidzo',
+    photoDescription: 'Tsatanhudzo',
+    selectCategory: 'Kategari',
+    general: 'Zvakajairika',
+    event: 'Chiitiko',
+    photoSubmitted: 'Mufananidzo watumirwa yeongororo!',
+    
     // Tributes
     tributes: 'Tsamba',
     shareTribute: 'Gova Tsamba',
@@ -333,11 +395,19 @@ export const translations = {
     yourMessage: 'Tsamba Yako',
     submitTribute: 'Endesa Tsamba',
     tributeSubmitted: 'JazakAllah Khair! Tsamba yako yatumwa yakanangana neongororo.',
+    TRIBUTE_TITLE: 'Mukuyeuchidza Kwerudo rwa Hajji Dawood Cassim',
     
     // Dedication
-    inLovingMemory: 'Nerufaro Rwokurangarira',
+    inLovingMemory: 'Mukuyeuchidza Kwerudo rwa Hajji Dawood Cassim',
     mayAllahHaveMercy: '(Allah vagomutsirira netsa)',
     sadaqahJaariyah: 'Sadaqah Jaariyah',
+    dedicationTribute: 'Hajji Dawood Cassim aive mbiru yenharaunda yedu - murume aive nekutenda kusingazununguki, rupo rwakakura, uye kuzvipira kuImba yaAllah. Nhaka yake inoramba iripo kuburikidza nemweya wese waakabata, munamato wese waakatungamira, nemoyo wese waakadziisa netsitsi dzake. Iyi purogiramu yakatsaurirwa seSadaqah Jaariyah muchirangaridzo chake chakaropafadzwa.',
+    dedicationApp: 'Dai chiyeuchidzo chese chenguva yemunamato, vhesi rese reQuran rinochengetwa mumusoro, uye chiito chese chekunamata chinorerutswa nepurogiramu iyi chive sosi yemubairo wekusingaperi kwaari nemhuri yake.',
+    dedicationDua: 'Iwe Allah, ita kuti basa iri rive mubayiro wakataririka kwake',
+    reciteQuranForSoul: 'Verenga Quran kuMweya Wake',
+    
+    // Instructions
+    instructions: 'Mirayiridzo Yese Inoshanda Pano',
     
     // Daily Content
     hadithOfTheDay: 'Hadith Yenzhasi',
@@ -356,8 +426,39 @@ export const translations = {
     offline: 'Hapana Signal',
     offlineMessage: 'Hauina signal. Zvimwe zvinhu hazvigone kushanda.',
     
+    // Qibla
+    qiblaDirection: 'Nzira yeQibla',
+    fromBulawayo: 'Kubva kuBulawayo, tarisa 20° Kuburikidza neMaodzanyemba',
+    
+    // Guide
+    previous: '← Yapfuura',
+    next: 'Inotevera →',
+    
+    // Dua
+    all: 'Zvose',
+    morning: 'Mangwanani',
+    evening: 'Manheru',
+    eating: 'Kudya',
+    sleeping: 'Kurara',
+    travel: 'Kufamba',
+    mosque: 'Masjid',
+    daily: 'Zuva rose',
+    
     // Misc
     loadingMasjid: 'Kutora Masjid Hub...',
+    previewApp: 'Ona App',
+    saveAll: 'Seza Zvose',
+    saving: 'Kuchengeta...',
+    saved: 'Chakachengeteka!',
+    delete: 'Dzima',
+    approve: 'Bvuma',
+    feature: 'Taridza',
+    unfeature: 'Usataridza',
+    approveAndFeature: 'Bvuma uye Taridza',
+    pending: 'Yakamirira',
+    approved: 'Yakabvumwa',
+    featured: 'Yakataridzwa',
+    submitted: 'Yatumwa',
   },
   
   nd: {
@@ -429,6 +530,24 @@ export const translations = {
     learning: 'Ukufunda',
     revision: 'Ukuphinda',
     
+    // Tajweed
+    tajweedLesons: 'Izifundo zeTajweed',
+    tajweedDesc: 'Funda ukufunda iQuran ngendlela efanele',
+    makharij: 'Makharij (Izindawo Zokuphimisa)',
+    sifaat: 'Sifaat (Izici Zonhlamvu)',
+    nunSakinah: 'Imithetho yeNun Sakinah',
+    meemSakinah: 'Imithetho yeMeem Sakinah',
+    madd: 'Madd (Ukwandisa)',
+    waqf: 'Waqf (Imithetho Yokumisa)',
+    view: 'Buka',
+    
+    // Arabic
+    learnArabicTitle: 'Funda Isi-Arabhu',
+    learnArabicDesc: 'Funda ulimi lwesi-Arabhu',
+    arabicAlphabet: 'Alfabethi yesi-Arabhu',
+    commonVocabulary: 'Amagama Avamile',
+    commonPhrases: 'Izisho Ezivamile',
+    
     // Community
     askSheikh: 'Buza Sheikh',
     askQuestionDesc: 'Thumela imibuzo yakho yeSILAM kuya ku-Imam',
@@ -460,6 +579,43 @@ export const translations = {
     register: 'Bhalisa',
     registrationSuccess: 'Ubhalisile ngempumelelo!',
     
+    // Qurbani
+    qurbaniTitle: 'Izabelo zeQurbani',
+    qurbaniDesc: 'Yabelana ngeQurbani yeEid al-Adha',
+    selectAnimal: 'Khetha Isilwane',
+    shares: 'Izabelo',
+    yourName: 'Igama Lakho',
+    donorPhone: 'Inombolo yefoni',
+    contribute: 'Yabelana',
+    filled: 'kugcwele',
+    full: 'Kugcwele',
+    
+    // Live Stream
+    liveStream: 'Ukusakaza ngokuQhubekayo',
+    liveStreamDesc: 'Buka izinhlelo eziphilayo eMasjid',
+    upcomingStreams: 'Izinhlelo Ezizayo',
+    noLiveStreams: 'Akukho nzinto esakazwayo manje',
+    
+    // Alerts
+    emergencyAlert: 'Isexwayiso Sobuphethe',
+    emergencyDesc: 'Kubalulekile abantu abadinga usizo - thumela isexwayiso kubavolontiya',
+    sendAlert: 'Thumela Isexwayiso',
+    alertSent: 'Isexwayiso sithunyelwe! Usizo luseduze.',
+    volunteers: 'Abavolontiya',
+    volunteersDesc: 'Izalwane abangabizwa ukuba basize ngokuhlola kanye nosizo lwebanga eliphuthumayo.',
+    vulnerableMembers: 'Izalwane Abadinga Usizo',
+    vulnerableDesc: 'Abadala, abagulayo, noma abahlala bodwa abangase badinge ukuhlolwa njalo.',
+    
+    // Photo Album
+    photoAlbum: 'I-Albhamu Yezithombe',
+    uploadPhoto: 'Layisha Isithombe',
+    photoTitle: 'Isihloko Sesithombe',
+    photoDescription: 'Incazelo',
+    selectCategory: 'Isigaba',
+    general: 'Jikelele',
+    event: 'Umcedo',
+    photoSubmitted: 'Isithombe sithunyelwe kuqashelwe!',
+    
     // Tributes
     tributes: 'Izindaba',
     shareTribute: 'Yabelana ngezindaba',
@@ -468,11 +624,19 @@ export const translations = {
     yourMessage: 'Umyalezo Wakho',
     submitTribute: 'Thumela Umyalezo',
     tributeSubmitted: 'JazakAllah Khair! Umyalezo wakho uthunyelwe ukuze uqwalaselwe.',
+    TRIBUTE_TITLE: 'Isikhumbuzo Sothando sika Hajji Dawood Cassim',
     
     // Dedication
-    inLovingMemory: 'Ngokukhumbula',
+    inLovingMemory: 'Isikhumbuzo Sothando sika Hajji Dawood Cassim',
     mayAllahHaveMercy: '(uAllah amncoe)',
     sadaqahJaariyah: 'Sadaqah Jaariyah',
+    dedicationTribute: 'UHajji Dawood Cassim wayeyisihlalo somphakathi wethu - umuntu onokholo olungaziwa, ukupha okungapheli, intshiseko kwiNdlu kaAllah. Ifa lakhe lihlala ngokuphila kwempilo yamunye umuntu awathintayo, isithandathu sonke asiholayo, nenyongo yamunye umuntu ayenzayo.',
+    dedicationApp: 'Le application inikezelwe njengeSadaqah Jaariyah (iphalo elihlala njalo) enkumbulweni yakhe. Ma sikhumbuzo sonke sikhumbuzo sesikhathi somthandazo, ivevesi leQuran elifundwayo, isenzo sonke sokhonzayo esivunyelwe kule app kube umthombo wokuphakade kwakhe nalokhulu.',
+    dedicationDua: 'Wena Allah, yenza lo msebenzi ube umsoco wakhe',
+    reciteQuranForSoul: 'Funda Quran kuMoya Wakhe',
+    
+    // Instructions
+    instructions: 'Bonke Imiyalelo Isebenza Lapha',
     
     // Daily Content
     hadithOfTheDay: 'IHadith Yalolusuku',
@@ -491,8 +655,39 @@ export const translations = {
     offline: 'Akukho Signal',
     offlineMessage: 'Awunayo signal. Ezinye izinto azisebenzi.',
     
+    // Qibla
+    qiblaDirection: 'Isiqondiso seQibla',
+    fromBulawayo: 'E-Bulawayo, bheka cishe u-20° Enyakatho Empumalanga',
+    
+    // Guide
+    previous: '← Okudlule',
+    next: 'Okulandelayo →',
+    
+    // Dua
+    all: 'Konke',
+    morning: 'Ekuseni',
+    evening: 'Ebusuku',
+    eating: 'Ukudla',
+    sleeping: 'Ukulala',
+    travel: 'Ukuhamba',
+    mosque: 'iMasjid',
+    daily: 'Nsuku zonke',
+    
     // Misc
     loadingMasjid: 'Iyalayisha iMasjid Hub...',
+    previewApp: 'Buka Uhlelo',
+    saveAll: 'Gcina Konke',
+    saving: 'Iyagcina...',
+    saved: 'Kugcinwe!',
+    delete: 'Susa',
+    approve: 'Vumela',
+    feature: 'Bonisa',
+    unfeature: 'Ungaboni',
+    approveAndFeature: 'Vumela futhi Bonisa',
+    pending: 'Kulindile',
+    approved: 'Kuvunyelwe',
+    featured: 'Kubonisiwe',
+    submitted: 'Kuthunyelwe',
   }
 }
 

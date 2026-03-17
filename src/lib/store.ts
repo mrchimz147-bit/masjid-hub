@@ -81,8 +81,8 @@ interface AppState {
   setCachedData: (data: Partial<CachedData>) => void
 
   // Learn section state
-  learnSubTab: 'wudu' | 'salah' | 'duas' | 'arabic' | 'tajweed' | 'hifz' | 'kids' | 'janaza'
-  setLearnSubTab: (tab: 'wudu' | 'salah' | 'duas' | 'arabic' | 'tajweed' | 'hifz' | 'kids' | 'janaza') => void
+  learnSubTab: 'wudu' | 'salah' | 'duas' | 'arabic' | 'tajweed' | 'hifz' | 'kids' | 'janaza' | 'quiz'
+  setLearnSubTab: (tab: 'wudu' | 'salah' | 'duas' | 'arabic' | 'tajweed' | 'hifz' | 'kids' | 'janaza' | 'quiz') => void
 
   // Community section state
   communitySubTab: 'ask' | 'faq' | 'booking' | 'announcements' | 'livestream' | 'qurbani'

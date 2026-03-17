@@ -5,6 +5,7 @@ import { useAppStore } from '@/lib/store'
 import { usePrayerAlarm } from '@/hooks/use-prayer-alarm'
 import { MASJID_LOCATION } from '@/lib/prayer-utils'
 import { t, Language } from '@/lib/i18n'
+import IslamicQuizGame from '@/components/IslamicQuizGame'
 
 // Bulawayo timezone helper (CAT - UTC+2)
 const getBulawayoTime = () => {
@@ -657,6 +658,17 @@ export default function MasjidHub() {
   const [showQuizResult, setShowQuizResult] = useState(false)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
 
+  // Islamic Quiz Game states
+  const [quizDifficulty, setQuizDifficulty] = useState<'easy' | 'medium' | 'hard' | 'holymoly'>('easy')
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([])
+  const [quizCurrentQ, setQuizCurrentQ] = useState(0)
+  const [quizPoints, setQuizPoints] = useState(0)
+  const [quizSelectedAnswer, setQuizSelectedAnswer] = useState<number | null>(null)
+  const [quizShowResult, setQuizShowResult] = useState(false)
+  const [quizLeaderboard, setQuizLeaderboard] = useState<{name: string; score: number; difficulty: string; date: string}[]>([])
+  const [showLeaderboardInput, setShowLeaderboardInput] = useState(false)
+  const [playerName, setPlayerName] = useState('')
+
   // Qibla Compass states
   const [compassHeading, setCompassHeading] = useState<number | null>(null)
   const [compassError, setCompassError] = useState<string | null>(null)
@@ -672,6 +684,8 @@ export default function MasjidHub() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [showPhotoUpload, setShowPhotoUpload] = useState(false)
   const [photoForm, setPhotoForm] = useState({ title: '', description: '', category: 'general', imageUrl: '' })
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
   const [photoUploaded, setPhotoUploaded] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
 
@@ -810,6 +824,20 @@ export default function MasjidHub() {
           duas: d,
           announcements: ann,
         })
+        
+        // Load local hifz progress after surahs are set
+        setTimeout(() => {
+          const savedProgress = localStorage.getItem('masjid-hifz-progress')
+          if (savedProgress) {
+            const progress = JSON.parse(savedProgress)
+            setSurahs(prevSurahs => prevSurahs.map(s => {
+              if (progress[s.id]) {
+                return { ...s, hifzProgress: [{ status: progress[s.id].status }] }
+              }
+              return s
+            }))
+          }
+        }, 100)
       } catch (error) {
         console.error('Error loading data:', error)
       } finally {
@@ -1078,17 +1106,49 @@ export default function MasjidHub() {
     }
   }
 
-  // Handle Hifz progress update
+  // Handle Hifz progress update - supports both logged-in and anonymous users
   const handleHifzUpdate = async (surahId: string, status: string) => {
-    if (!currentMemberId) return
-    try {
-      await fetch('/api/hifz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentMemberId, surahId, status }),
-      })
-    } catch (error) {
-      console.error('Error updating hifz:', error)
+    playClickSound()
+    
+    // Always update localStorage first (works for both logged-in and anonymous)
+    const savedProgress = localStorage.getItem('masjid-hifz-progress')
+    const progress = savedProgress ? JSON.parse(savedProgress) : {}
+    progress[surahId] = { status, updatedAt: new Date().toISOString() }
+    localStorage.setItem('masjid-hifz-progress', JSON.stringify(progress))
+    
+    // Update local state to reflect changes immediately
+    setSurahs(prevSurahs => prevSurahs.map(s => {
+      if (s.id === surahId) {
+        return { ...s, hifzProgress: [{ status }] }
+      }
+      return s
+    }))
+    
+    // If user is logged in, also sync to database
+    if (currentMemberId) {
+      try {
+        await fetch('/api/hifz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentMemberId, surahId, status }),
+        })
+      } catch (error) {
+        console.error('Error syncing hifz to database:', error)
+      }
+    }
+  }
+
+  // Load hifz progress from localStorage on mount
+  const loadLocalHifzProgress = () => {
+    const savedProgress = localStorage.getItem('masjid-hifz-progress')
+    if (savedProgress) {
+      const progress = JSON.parse(savedProgress)
+      setSurahs(prevSurahs => prevSurahs.map(s => {
+        if (progress[s.id]) {
+          return { ...s, hifzProgress: [{ status: progress[s.id].status }] }
+        }
+        return s
+      }))
     }
   }
 
@@ -1404,15 +1464,15 @@ export default function MasjidHub() {
               
               <div className="dedication-content">
                 <div className="text-center mb-4">
-                  <h2 className="dedication-title">In Loving Memory of</h2>
+                  <h2 className="dedication-title">{tr('inLovingMemory')}</h2>
                   <h3 className="dedication-name">Hajji Dawood Cassim</h3>
                   <p className="dedication-arabic">رحمة الله عليه</p>
-                  <p className="dedication-arabic-translation">(May Allah have mercy on him)</p>
+                  <p className="dedication-arabic-translation">({language === 'sn' ? 'Allah vagomutsirira netsa' : language === 'nd' ? 'uAllah amncoe' : 'May Allah have mercy on him'})</p>
                 </div>
 
                 {/* Quran Recitation Section */}
                 <div className="dedication-quran-section">
-                  <h4 className="text-sm font-bold text-primary mb-2 text-center">📖 Recite Quran for His Soul</h4>
+                  <h4 className="text-sm font-bold text-primary mb-2 text-center">📖 {language === 'sn' ? 'Verenga Quran pamusoro pake' : language === 'nd' ? 'Fundela iQuran ngekhaye lakhe' : 'Recite Quran for His Soul'}</h4>
                   <div className="flex gap-2 justify-center flex-wrap">
                     {dedicationSurahs.map((surah) => (
                       <button
@@ -1438,10 +1498,28 @@ export default function MasjidHub() {
                   </div>
 
                   <div className="dedication-translation">
-                    <p>O Allah, have mercy upon Your servant Dawood</p>
-                    <p>And descend upon his grave light and tranquility</p>
-                    <p>Make his grave a garden from the gardens of Paradise</p>
-                    <p>And honor his resting place and widen his entrance</p>
+                    {language === 'sn' ? (
+                      <>
+                        <p>O Allah, itire tsitsi mushandi wako Dawood</p>
+                        <p>Uye buritsira pachigaro chake chiedza nokugadzikana</p>
+                        <p>Ita chigaro chake kuti chive paradhiso</p>
+                        <p>Uye nomutsa pakuwana kwake</p>
+                      </>
+                    ) : language === 'nd' ? (
+                      <>
+                        <p>O Allah, mcelule inkonzo yakho uDawood</p>
+                        <p>Futhi wehlela engcwabeni lakhe ukukhanya nokuthula</p>
+                        <p>Yenza ingcwaba lakhe libe yisivande esivela ezivandeni zaseParadisi</p>
+                        <p>Futhi mkhontse indawo yakhe yokuphumula</p>
+                      </>
+                    ) : (
+                      <>
+                        <p>O Allah, have mercy upon Your servant Dawood</p>
+                        <p>And descend upon his grave light and tranquility</p>
+                        <p>Make his grave a garden from the gardens of Paradise</p>
+                        <p>And honor his resting place and widen his entrance</p>
+                      </>
+                    )}
                   </div>
 
                   <div className="dedication-divider" />
@@ -1454,23 +1532,41 @@ export default function MasjidHub() {
                   </div>
 
                   <div className="dedication-translation">
-                    <p>O Allah, forgive him, have mercy upon him, give him peace, and pardon him</p>
-                    <p>Honor his resting place, widen his entrance</p>
-                    <p>Wash him with water, snow, and hail</p>
-                    <p>Purify him from sins and mistakes as a white garment is purified from dirt</p>
+                    {language === 'sn' ? (
+                      <>
+                        <p>O Allah, muregere, itire tsitsi, mupi rugare, uye mumhore</p>
+                        <p>Mutsai pakuwana kwake, fumudzai mwayo wake</p>
+                        <p>Mugezei nemvura, chando, nemabara</p>
+                        <p>Muchenzese mubvi zvose somomwezu tsvuku yachenzeswa tsvina</p>
+                      </>
+                    ) : language === 'nd' ? (
+                      <>
+                        <p>O Allah, mxolele, mcelule, mnikela uxolo</p>
+                        <p>Mkhontse indawo yakhe yokuphumula,andise indlela yakhe</p>
+                        <p>Umgeze namanzi, iqhwa, nobunzima</p>
+                        <p>Umsule kwezono neziphoso njengoba ingubo emhlophe isuselwa umlaza</p>
+                      </>
+                    ) : (
+                      <>
+                        <p>O Allah, forgive him, have mercy upon him, give him peace, and pardon him</p>
+                        <p>Honor his resting place, widen his entrance</p>
+                        <p>Wash him with water, snow, and hail</p>
+                        <p>Purify him from sins and mistakes as a white garment is purified from dirt</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <div className="dedication-tribute">
                   <p className="dedication-tribute-text">
-                    Hajji Dawood Cassim was a pillar of our community - a man of unwavering faith, boundless generosity, and dedication to the House of Allah. His legacy lives on through every soul he touched, every prayer he led, and every heart he warmed with his kindness.
+                    {tr('dedicationTribute')}
                   </p>
                   <p className="dedication-tribute-text mt-3">
-                    This application is dedicated as a <strong>Sadaqah Jaariyah</strong> (continuous charity) in his blessed memory. May every prayer time reminder, every verse of Quran memorized, every act of worship facilitated through this app be a source of eternal reward for him and his family.
+                    {tr('dedicationApp')}
                   </p>
                   <div className="dedication-sadaqah">
                     <p className="dedication-arabic-small">اللَّهُمَّ اجْعَلْ هَذَا الْعَمَلَ صَدَقَةً جَارِيَةً لَهُ</p>
-                    <p className="dedication-translation-small">O Allah, make this work a continuous charity for him</p>
+                    <p className="dedication-translation-small">{tr('dedicationDua')}</p>
                   </div>
                 </div>
 
@@ -1870,6 +1966,7 @@ export default function MasjidHub() {
                 { id: 'hifz', label: '📖 Hifz' },
                 { id: 'tajweed', label: '🎙️ Tajweed' },
                 { id: 'arabic', label: '🔤 Arabic' },
+                { id: 'quiz', label: '🎯 Quiz Game' },
                 { id: 'kids', label: '🎨 Kids' },
                 { id: 'janaza', label: '🤲 Janaza' },
               ].map((tab) => (
@@ -2532,6 +2629,11 @@ export default function MasjidHub() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Islamic Quiz Game */}
+            {learnSubTab === 'quiz' && (
+              <IslamicQuizGame />
             )}
           </div>
         )}
@@ -3479,16 +3581,54 @@ export default function MasjidHub() {
             </p>
 
             <div className="space-y-4">
+              {/* File Upload Section */}
               <div>
-                <label className="block text-sm font-medium mb-1">Photo URL *</label>
+                <label className="block text-sm font-medium mb-1">Select Photo *</label>
+                <input 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="form-input w-full text-sm" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setPhotoFile(file)
+                      // Auto-fill title from filename if empty
+                      if (!photoForm.title) {
+                        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
+                        setPhotoForm({ ...photoForm, title: nameWithoutExt })
+                      }
+                    }
+                  }}
+                />
+                <p className="text-xs text-gray-400 mt-1">Max 10MB. JPEG, PNG, GIF, WebP allowed.</p>
+              </div>
+
+              {/* Preview selected file */}
+              {photoFile && (
+                <div className="relative">
+                  <img 
+                    src={URL.createObjectURL(photoFile)} 
+                    alt="Preview" 
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                  <button
+                    onClick={() => setPhotoFile(null)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium mb-1">Or paste image URL</label>
                 <input 
                   type="text" 
                   className="form-input w-full" 
-                  placeholder="Enter image URL (e.g., from Google Drive, Dropbox)"
+                  placeholder="https://example.com/image.jpg"
                   value={photoForm.imageUrl}
                   onChange={(e) => setPhotoForm({ ...photoForm, imageUrl: e.target.value })}
                 />
-                <p className="text-xs text-gray-400 mt-1">Tip: Upload to a image hosting service and paste the link here</p>
               </div>
 
               <div>
@@ -3530,19 +3670,45 @@ export default function MasjidHub() {
 
               <button 
                 onClick={async () => {
-                  if (!photoForm.title || !photoForm.imageUrl) return
+                  if (!photoForm.title || (!photoFile && !photoForm.imageUrl)) return
                   playClickSound()
+                  setPhotoUploading(true)
                   try {
+                    let imageUrl = photoForm.imageUrl
+                    
+                    // If a file is selected, upload it first
+                    if (photoFile) {
+                      const formData = new FormData()
+                      formData.append('file', photoFile)
+                      
+                      const uploadRes = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                      })
+                      const uploadData = await uploadRes.json()
+                      
+                      if (uploadData.success && uploadData.url) {
+                        imageUrl = uploadData.url
+                      } else {
+                        throw new Error(uploadData.error || 'Failed to upload image')
+                      }
+                    }
+                    
+                    // Submit photo with the image URL
                     await fetch('/api/photos', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        ...photoForm,
+                        title: photoForm.title,
+                        description: photoForm.description,
+                        category: photoForm.category,
+                        imageUrl,
                         uploadedBy: currentMemberId || 'anonymous',
                         uploaderName: memberForm.firstName || 'Anonymous'
                       }),
                     })
                     setPhotoForm({ title: '', description: '', category: 'general', imageUrl: '' })
+                    setPhotoFile(null)
                     setPhotoUploaded(true)
                     setShowPhotoUpload(false)
                     setTimeout(() => setPhotoUploaded(false), 3000)
@@ -3551,12 +3717,15 @@ export default function MasjidHub() {
                     setPhotos(updated.photos || [])
                   } catch (error) {
                     console.error('Error uploading photo:', error)
+                    alert('Failed to upload photo. Please try again.')
+                  } finally {
+                    setPhotoUploading(false)
                   }
                 }}
-                disabled={!photoForm.title || !photoForm.imageUrl}
+                disabled={!photoForm.title || (!photoFile && !photoForm.imageUrl) || photoUploading}
                 className="btn-primary w-full disabled:opacity-50"
               >
-                Submit Photo
+                {photoUploading ? 'Uploading...' : 'Submit Photo'}
               </button>
             </div>
           </div>

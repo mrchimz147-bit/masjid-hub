@@ -186,6 +186,82 @@ export default function AdminPanel() {
     }, 500)
   }
 
+  // Save prayer times to database
+  const handleSavePrayerTimes = async () => {
+    setSaving(true)
+    try {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      const response = await fetch('/api/prayer-times', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: today.toISOString(),
+          ...prayerTimes
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        // Also save to localStorage as backup
+        localStorage.setItem('masjid-admin-prayer', JSON.stringify(prayerTimes))
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      } else {
+        alert('Failed to save prayer times. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error saving prayer times:', error)
+      // Save to localStorage as fallback
+      localStorage.setItem('masjid-admin-prayer', JSON.stringify(prayerTimes))
+      alert('Saved locally. Will sync to database when online.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Bulk save prayer times for next 7 days
+  const handleBulkSavePrayerTimes = async () => {
+    setSaving(true)
+    try {
+      const times = []
+      for (let i = 0; i < 7; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() + i)
+        date.setHours(0, 0, 0, 0)
+        times.push({
+          date: date.toISOString(),
+          ...prayerTimes
+        })
+      }
+      
+      const response = await fetch('/api/prayer-times', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ times }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        localStorage.setItem('masjid-admin-prayer', JSON.stringify(prayerTimes))
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+        alert(`✅ Saved prayer times for ${data.updated} days!`)
+      } else {
+        alert('Failed to save prayer times. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error bulk saving prayer times:', error)
+      localStorage.setItem('masjid-admin-prayer', JSON.stringify(prayerTimes))
+      alert('Saved locally. Will sync to database when online.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   // Announcement functions
   const addAnnouncement = () => {
     setAnnouncements([...announcements, {
@@ -638,38 +714,66 @@ export default function AdminPanel() {
 
         {/* PRAYER TIMES TAB */}
         {activeTab === 'prayer' && (
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h2 className="font-bold text-lg text-primary mb-4">🕐 Today&apos;s Prayer Times</h2>
-            
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { key: 'fajr', label: 'Fajr', icon: '🌅' },
-                { key: 'sunrise', label: 'Sunrise', icon: '☀️' },
-                { key: 'dhuhr', label: 'Dhuhr', icon: '🌞' },
-                { key: 'asr', label: 'Asr', icon: '🌤️' },
-                { key: 'maghrib', label: 'Maghrib', icon: '🌅' },
-                { key: 'isha', label: 'Isha', icon: '🌙' },
-              ].map((prayer) => (
-                <div key={prayer.key} className="flex items-center gap-2">
-                  <span className="text-xl">{prayer.icon}</span>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{prayer.label}</label>
-                    <input
-                      type="time"
-                      value={prayerTimes[prayer.key as keyof typeof prayerTimes]}
-                      onChange={(e) => setPrayerTimes({...prayerTimes, [prayer.key]: e.target.value})}
-                      className="w-full px-4 py-2 border rounded-lg focus:border-primary focus:outline-none"
-                    />
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h2 className="font-bold text-lg text-primary mb-4">🕐 Today&apos;s Prayer Times</h2>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { key: 'fajr', label: 'Fajr', icon: '🌅' },
+                  { key: 'sunrise', label: 'Sunrise', icon: '☀️' },
+                  { key: 'dhuhr', label: 'Dhuhr', icon: '🌞' },
+                  { key: 'asr', label: 'Asr', icon: '🌤️' },
+                  { key: 'maghrib', label: 'Maghrib', icon: '🌅' },
+                  { key: 'isha', label: 'Isha', icon: '🌙' },
+                ].map((prayer) => (
+                  <div key={prayer.key} className="flex items-center gap-2">
+                    <span className="text-xl">{prayer.icon}</span>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{prayer.label}</label>
+                      <input
+                        type="time"
+                        value={prayerTimes[prayer.key as keyof typeof prayerTimes]}
+                        onChange={(e) => setPrayerTimes({...prayerTimes, [prayer.key]: e.target.value})}
+                        className="w-full px-4 py-2 border rounded-lg focus:border-primary focus:outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              
+              {/* Save Prayer Times Button */}
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={handleSavePrayerTimes}
+                  disabled={saving}
+                  className="flex-1 py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary-dark transition disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? '💾 Saving...' : saved ? '✅ Saved!' : '💾 Save Prayer Times to Database'}
+                </button>
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  💡 <strong>Tip:</strong> Update these daily or weekly based on your local prayer time calendar. 
+                  Click "Save Prayer Times" to save to the database - this will update the main app immediately.
+                </p>
+              </div>
             </div>
             
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700">
-                💡 <strong>Tip:</strong> Update these daily or weekly based on your local prayer time calendar. 
-                Changes reflect immediately on the main app.
+            {/* Bulk Update Section */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h3 className="font-bold text-primary mb-3">📅 Bulk Update for Week</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Save today&apos;s prayer times for the next 7 days (useful when times don&apos;t change much).
               </p>
+              <button
+                onClick={handleBulkSavePrayerTimes}
+                disabled={saving}
+                className="w-full py-2 bg-accent text-primary rounded-lg font-medium hover:bg-accent/80 transition disabled:opacity-50"
+              >
+                📆 Save for Next 7 Days
+              </button>
             </div>
           </div>
         )}

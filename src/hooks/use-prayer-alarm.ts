@@ -13,6 +13,9 @@ interface PrayerAlarmHook {
   hasNotificationPermission: boolean
 }
 
+// Makkah Adhan - Sheikh Ali Mulla (famous Muezzin of Masjid al-Haram)
+const ADHAN_AUDIO_URL = 'https://download.quranicaudio.com/adhan/ali_mulla.mp3'
+
 export function usePrayerAlarm(): PrayerAlarmHook {
   const [isPlaying, setIsPlaying] = useState(false)
   const [nextPrayer, setNextPrayer] = useState<{ name: string; time: string; remaining: string } | null>(null)
@@ -36,17 +39,48 @@ export function usePrayerAlarm(): PrayerAlarmHook {
     }
   }, [])
 
-  // Play Adhan
+  // Play Adhan - Makkah Muezzin
   const playAdhan = useCallback(() => {
-    // In production, use actual Adhan audio file
-    // For now, use a simple notification sound or text-to-speech
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance('Allahu Akbar, Allahu Akbar...')
-      utterance.lang = 'ar'
-      utterance.rate = 0.8
-      speechSynthesis.speak(utterance)
-      setIsPlaying(true)
-      utterance.onend = () => setIsPlaying(false)
+    try {
+      // Stop any existing audio
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      
+      // Create new audio with Makkah Adhan
+      const audio = new Audio(ADHAN_AUDIO_URL)
+      audioRef.current = audio
+      
+      audio.onplay = () => setIsPlaying(true)
+      audio.onended = () => setIsPlaying(false)
+      audio.onerror = () => {
+        console.error('Error playing Adhan audio')
+        // Fallback to speech synthesis
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance('Allahu Akbar, Allahu Akbar...')
+          utterance.lang = 'ar'
+          utterance.rate = 0.8
+          speechSynthesis.speak(utterance)
+          setIsPlaying(true)
+          utterance.onend = () => setIsPlaying(false)
+        }
+      }
+      
+      audio.play().catch((error) => {
+        console.error('Failed to play Adhan:', error)
+        // Fallback to speech synthesis
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance('Allahu Akbar, Allahu Akbar...')
+          utterance.lang = 'ar'
+          utterance.rate = 0.8
+          speechSynthesis.speak(utterance)
+          setIsPlaying(true)
+          utterance.onend = () => setIsPlaying(false)
+        }
+      })
+    } catch (error) {
+      console.error('Error in playAdhan:', error)
     }
   }, [])
 
@@ -54,6 +88,7 @@ export function usePrayerAlarm(): PrayerAlarmHook {
   const stopAdhan = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause()
+      audioRef.current.currentTime = 0
       audioRef.current = null
     }
     speechSynthesis.cancel()
@@ -176,10 +211,7 @@ export function usePrayerAlarm(): PrayerAlarmHook {
         clearInterval(intervalRef.current)
       }
     }
-  }, [playAdhan])
-
-  // Check notification permission on mount - use initial state instead of effect
-  // Permission is checked in the useState initializer below
+  }, [playAdhan, jumuahCountdown?.isToday])
 
   return {
     playAdhan,
