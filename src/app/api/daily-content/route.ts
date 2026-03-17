@@ -160,40 +160,63 @@ export async function GET(request: NextRequest) {
     const bulawayoTime = new Date(now.getTime() + (2 * 60 * 60 * 1000)) // Add 2 hours for CAT
     const today = new Date(bulawayoTime.toISOString().split('T')[0])
     
-    // Check if we have content for today
-    let hadithContent = await db.dailyContent.findFirst({
-      where: { type: 'hadith', date: today }
-    })
+    // Get day of year for selecting content
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
+    const hadithIndex = dayOfYear % hadiths.length
+    const verseIndex = (dayOfYear + 5) % quranVerses.length
     
-    let verseContent = await db.dailyContent.findFirst({
-      where: { type: 'quran_verse', date: today }
-    })
+    let hadithContent = null
+    let verseContent = null
     
-    // If no content for today, create new from collection
-    if (!hadithContent) {
-      const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
-      const hadithIndex = dayOfYear % hadiths.length
-      
-      hadithContent = await db.dailyContent.create({
-        data: {
-          type: 'hadith',
-          ...hadiths[hadithIndex],
-          date: today
-        }
+    // Try to get from database, fall back to static content
+    try {
+      hadithContent = await db.dailyContent.findFirst({
+        where: { type: 'hadith', date: today }
       })
+      
+      verseContent = await db.dailyContent.findFirst({
+        where: { type: 'quran_verse', date: today }
+      })
+      
+      // If no content for today, create new from collection
+      if (!hadithContent) {
+        hadithContent = await db.dailyContent.create({
+          data: {
+            type: 'hadith',
+            ...hadiths[hadithIndex],
+            date: today
+          }
+        }).catch(() => null)
+      }
+      
+      if (!verseContent) {
+        verseContent = await db.dailyContent.create({
+          data: {
+            type: 'quran_verse',
+            ...quranVerses[verseIndex],
+            date: today
+          }
+        }).catch(() => null)
+      }
+    } catch (dbError) {
+      console.log('Database not available, using static content')
+    }
+    
+    // Fall back to static content if database failed
+    if (!hadithContent) {
+      hadithContent = {
+        type: 'hadith',
+        ...hadiths[hadithIndex],
+        date: today.toISOString()
+      }
     }
     
     if (!verseContent) {
-      const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
-      const verseIndex = (dayOfYear + 5) % quranVerses.length // Offset to get different content
-      
-      verseContent = await db.dailyContent.create({
-        data: {
-          type: 'quran_verse',
-          ...quranVerses[verseIndex],
-          date: today
-        }
-      })
+      verseContent = {
+        type: 'quran_verse',
+        ...quranVerses[verseIndex],
+        date: today.toISOString()
+      }
     }
     
     if (type === 'hadith') {

@@ -18,6 +18,27 @@ const DEMO_USERS = [
     name: 'Tech Support',
     role: 'ADMIN',
   },
+  {
+    id: 'chairman-001',
+    email: 'chairman@zeenatulislam.org',
+    password: 'chairman2024',
+    name: 'Chairman',
+    role: 'ADMIN',
+  },
+  {
+    id: 'treasurer-001',
+    email: 'treasurer@zeenatulislam.org',
+    password: 'treasurer2024',
+    name: 'Treasurer',
+    role: 'ADMIN',
+  },
+  {
+    id: 'secretary-001',
+    email: 'secretary@zeenatulislam.org',
+    password: 'secretary2024',
+    name: 'Secretary',
+    role: 'MODERATOR',
+  },
 ]
 
 export async function POST(request: Request) {
