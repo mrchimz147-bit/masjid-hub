@@ -1,0 +1,23 @@
+{
+  "name": "Masjid Hub - Zeenat-ul-Islam",
+  "short_name": "Masjid Hub",
+  "description": "Islamic community app for Zeenat-ul-Islam Masjid, Bulawayo, Zimbabwe",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#1B5E20",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "education"],
+  "lang": "en",
+  "dir": "auto",
+  "scope": "/",
+  "prefer_related_applications": false
+}

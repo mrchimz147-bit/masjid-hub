@@ -1,0 +1,463 @@
+// This is your Prisma schema file for Masjid Hub - Zeenat-ul-Islam
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?
+  name         String?
+  role         UserRole @default(MEMBER)
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  bookings     Booking[]
+  donations    Donation[]
+  questions    Question[]
+  madressaStudents MadressaStudent[]
+  notifications Notification[]
+  member       Member?
+  hifzProgress HifzProgress[]
+  qurbaniContributions QurbaniContribution[]
+  alerts       Alert[]
+}
+
+model Member {
+  id               String   @id @default(cuid())
+  userId           String?  @unique
+  user             User?    @relation(fields: [userId], references: [id])
+  firstName        String
+  lastName         String
+  email            String?  @unique
+  phone            String?
+  passwordHash     String?
+  address          String?
+  city             String?
+  province         String?
+  country          String   @default("Zimbabwe")
+  postalCode       String?
+  latitude         Float?
+  longitude        Float?
+  isVolunteer      Boolean  @default(false)
+  isVulnerable     Boolean  @default(false)
+  emergencyContact String?
+  emergencyPhone   String?
+  occupation       String?
+  dateOfBirth      DateTime?
+  joinedDate       DateTime @default(now())
+  isActive         Boolean  @default(true)
+  lastLoginAt      DateTime?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  qurbaniContributions QurbaniContribution[]
+  alerts           Alert[]
+  sessions         MemberSession[]
+  marriageProfile  MarriageProfile?
+}
+
+model PrayerTime {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  fajr      String
+  sunrise   String
+  dhuhr     String
+  asr       String
+  maghrib   String
+  isha      String
+  createdAt DateTime @default(now())
+}
+
+model GuideStep {
+  id              String   @id @default(cuid())
+  category        String   // "wudu" or "salah"
+  stepNumber      Int
+  title           String
+  arabicText      String?
+  transliteration String?
+  translation     String?
+  imageUrl        String?
+  audioUrl        String?
+  createdAt       DateTime @default(now())
+
+  @@unique([category, stepNumber])
+}
+
+model Dua {
+  id              String   @id @default(cuid())
+  title           String
+  category        String   // "morning", "evening", "eating", "sleeping", "travel", "mosque", "bathroom", "home"
+  arabicText      String
+  transliteration String
+  translation     String
+  audioUrl        String?
+  imageUrl        String?
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+}
+
+model Question {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  question    String
+  answer      String?
+  isPublished Boolean   @default(false)
+  isAnswered  Boolean   @default(false)
+  answeredBy  String?
+  createdAt   DateTime  @default(now())
+  answeredAt  DateTime?
+}
+
+model Booking {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  facility   String   // "main_hall", "classroom", "kitchen"
+  purpose    String
+  date       DateTime
+  startTime  String
+  endTime    String
+  status     String   @default("pending") // pending, approved, rejected
+  notes      String?
+  createdAt  DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedBy String?
+}
+
+model Donation {
+  id               String   @id @default(cuid())
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id])
+  amount           Float
+  currency         String   @default("USD")
+  type             String   // "general", "building", "madressa", "sadaqah"
+  paymentMethod    String?  // "ecocash", "onemoney", "innbucks"
+  paymentReference String?
+  paymentStatus    String   @default("pending")
+  donorName        String?
+  donorEmail       String?
+  donorPhone       String?
+  createdAt        DateTime @default(now())
+}
+
+model MadressaStudent {
+  id          String   @id @default(cuid())
+  guardianId  String?
+  guardian    User?    @relation(fields: [guardianId], references: [id])
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime?
+  grade       String?
+  fees        Float    @default(0)
+  feesPaid    Float    @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  category  String   // "emergency", "committee", "daily_reminder"
+  priority  Int      @default(0)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// Hifz (Quran Memorization) Progress
+model HifzProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  surahNumber     Int
+  surahName       String
+  totalAyahs      Int
+  juzNumber       Int
+  status          String   @default("not_started") // not_started, memorizing, memorized, needs_revision
+  memorizedAyahs  Int      @default(0)
+  memorizedDate   DateTime?
+  lastRevisedAt   DateTime?
+  revisionCount   Int      @default(0)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([userId, surahNumber])
+}
+
+// Tajweed Lessons
+model TajweedLesson {
+  id              String   @id @default(cuid())
+  category        String   // makharij, sifaat, nun_sakinah, meem_sakinah, madd, waqf
+  lessonNumber    Int
+  title           String
+  arabicTitle     String?
+  description     String
+  arabicExamples  String?  // JSON array of examples
+  audioUrl        String?
+  videoUrl        String?
+  practiceText    String?
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  
+  @@unique([category, lessonNumber])
+}
+
+// Qurbani Contributions
+model QurbaniContribution {
+  id              String   @id @default(cuid())
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id])
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  animalType      String   // sheep, goat, cow, camel
+  animalId        String?  // Group animals by ID
+  shareType       String   @default("full") // full, share, partial
+  shareNumber     Int?     // For cow/camel (1-7)
+  amount          Float
+  currency        String   @default("USD")
+  paymentStatus   String   @default("pending")
+  paymentMethod   String?
+  donorName       String?
+  donorPhone      String?
+  notes           String?
+  isPaid          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Live Streams
+model LiveStream {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  streamUrl     String
+  streamType    String   @default("youtube") // youtube, facebook, custom
+  eventType     String   @default("jumuah") // jumuah, taraweeh, eid, event
+  isLive        Boolean  @default(false)
+  scheduledAt   DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Emergency Alerts
+model Alert {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  memberId    String?
+  member      Member?   @relation(fields: [memberId], references: [id])
+  alertType   String    // panic, checkin_missed, welfare_concern
+  message     String?
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  status      String    @default("active") // active, responded, resolved
+  respondedAt DateTime?
+  resolvedAt  DateTime?
+  respondedBy String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+}
+
+// Tribute Comments for Hajji Dawood Cassim (رحمة الله عليه)
+model Tribute {
+  id           String    @id @default(cuid())
+  name         String
+  relationship String?   // How they knew him
+  message      String
+  isApproved   Boolean   @default(false)
+  isHighlighted Boolean  @default(false) // Featured tribute
+  submittedAt  DateTime  @default(now())
+  reviewedAt   DateTime?
+  reviewedBy   String?
+  notes        String?   // Admin notes
+}
+
+// Arabic Learning Content
+model ArabicContent {
+  id              String   @id @default(cuid())
+  category        String   // alphabet, words, phrases, grammar
+  letter          String?
+  arabicText      String
+  transliteration String?
+  translation     String?
+  audioUrl        String?
+  imageUrl        String?
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+}
+
+// Jumu'ah Settings
+model JumuahSettings {
+  id            String   @id @default(cuid())
+  khutbahTime   String   @default("12:45")
+  prayerTime    String   @default("13:15")
+  notes         String?
+  updatedAt     DateTime @updatedAt
+}
+
+// Member Sessions (for login/logout)
+model MemberSession {
+  id           String   @id @default(cuid())
+  memberId     String
+  member       Member   @relation(fields: [memberId], references: [id])
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+// Photo Album
+model Photo {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String
+  thumbnailUrl String?
+  category    String   @default("general") // general, event, jumuah, eid, taraweeh
+  event       String?
+  uploadedBy  String
+  uploaderName String?
+  isApproved  Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Daily Content (Hadith & Quran Verse)
+model DailyContent {
+  id          String   @id @default(cuid())
+  type        String   // hadith, quran_verse
+  contentAr   String   // Arabic text
+  contentEn   String   // English translation
+  contentSn   String?  // Shona translation
+  contentNd   String?  // Ndebele translation
+  source      String   // Source reference
+  date        DateTime @unique
+  createdAt   DateTime @default(now())
+}
+
+// Marriage Board Profile (Halal Matrimonial)
+model MarriageProfile {
+  id                String   @id @default(cuid())
+  memberId          String   @unique
+  member            Member   @relation(fields: [memberId], references: [id])
+  
+  // Basic Info
+  displayName       String
+  gender            String   // male, female
+  age               Int
+  maritalStatus     String   // never_married, divorced, widowed
+  occupation        String?
+  education         String?
+  nationality       String?
+  height            String?
+  
+  // Islamic Info
+  religiousPractice String?  // practicing, learning, new_muslim
+  prayerFrequency   String?  // five_daily, mostly, sometimes, learning
+  hijab             String?  // for sisters: niqab, hijab, learning
+  beard             String?  // for brothers: full, trimmed, growing
+  islamicEducation  String?
+  
+  // About
+  aboutMe           String?
+  aboutFamily       String?
+  lookingFor        String?
+  
+  // Preferences
+  ageMin            Int?
+  ageMax            Int?
+  preferredEducation String?
+  preferredLocation String?
+  preferredBackground String?
+  preferredNationality String?
+  relocation        String?  // willing, not_willing, depends
+  
+  // Contact (only shown to serious inquiries)
+  contactEmail      String?
+  contactPhone      String?
+  waliName          String?  // Wali/Guardian name
+  waliPhone         String?  // Wali/Guardian phone
+  waliEmail         String?
+  
+  // Photos
+  photos            MarriagePhoto[]
+  
+  // Settings
+  isApproved        Boolean  @default(false)
+  isVerified        Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  isVisible         Boolean  @default(true)
+  showPhotos        Boolean  @default(true)
+  allowContact      Boolean  @default(false)
+  
+  // Admin
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  adminNotes        String?
+  
+  // Interests
+  receivedInterests MarriageInterest[] @relation("receivedInterests")
+  sentInterests     MarriageInterest[] @relation("sentInterests")
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastActiveAt      DateTime @default(now())
+}
+
+// Marriage Photos
+model MarriagePhoto {
+  id                String   @id @default(cuid())
+  profileId         String
+  profile           MarriageProfile @relation(fields: [profileId], references: [id])
+  imageUrl          String
+  isPublic          Boolean  @default(false)  // Public or private (only visible to serious matches)
+  isApproved        Boolean  @default(false)
+  isProfilePhoto    Boolean  @default(false)
+  order             Int      @default(0)
+  createdAt         DateTime @default(now())
+}
+
+// Marriage Inquiries/Interests
+model MarriageInterest {
+  id                String   @id @default(cuid())
+  senderProfileId   String
+  senderProfile     MarriageProfile @relation("sentInterests", fields: [senderProfileId], references: [id])
+  receiverProfileId String
+  receiverProfile   MarriageProfile @relation("receivedInterests", fields: [receiverProfileId], references: [id])
+  message           String?
+  status            String   @default("pending")  // pending, accepted, declined, blocked
+  createdAt         DateTime @default(now())
+  respondedAt       DateTime?
+  
+  @@unique([senderProfileId, receiverProfileId])
+}
