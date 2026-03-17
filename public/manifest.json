@@ -1,23 +1,58 @@
 {
   "name": "Masjid Hub - Zeenat-ul-Islam",
   "short_name": "Masjid Hub",
-  "description": "Islamic community app for Zeenat-ul-Islam Masjid, Bulawayo, Zimbabwe",
+  "description": "Islamic community app for Zeenat-ul-Islam Masjid, Bulawayo, Zimbabwe. Prayer times, Quran, donations, and community features.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAFAFA",
+  "background_color": "#1B5E20",
   "theme_color": "#1B5E20",
   "orientation": "portrait-primary",
   "icons": [
     {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
-  "categories": ["lifestyle", "education"],
+  "categories": ["lifestyle", "education", "social"],
   "lang": "en",
   "dir": "auto",
   "scope": "/",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Prayer Times",
+      "short_name": "Prayer",
+      "description": "View today's prayer times",
+      "url": "/?tab=prayer",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Donate",
+      "short_name": "Donate",
+      "description": "Make a donation to the masjid",
+      "url": "/?tab=more&sub=donate",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Quran",
+      "short_name": "Quran",
+      "description": "Read and listen to Quran",
+      "url": "/?tab=learn&sub=hifz",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }
